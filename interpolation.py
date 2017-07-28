@@ -1,5 +1,6 @@
 #from scipy.interpolate import griddata
 #from scipy.interpolate import LinearNDInterpolator
+from tqdm import tqdm
 from scipy.interpolate import Rbf
 import numpy as np
 import math
@@ -33,17 +34,9 @@ for head in input_headers:
 stddev_list = [stddev_dict[x] for x in input_headers]
 
 
-#grids = np.mgrid[[slice(min_dict[x],max_dict[x],10j) for x in input_headers]]
-
-#Convert from indicies to real numbers
-conversion_eqs = {x: (lambda y : (y*((max_dict[x]-min_dict[x])/100.0) + min_dict[x])) for x in input_headers}
 
 rand_dat_np = numpy.asarray([[dat_line[x] for x in input_headers] for dat_line in rand_dat])
-
-#mtest = LinearNDInterpolator(rand_dat_np, numpy.asarray([dat_line["droplet_size"] for dat_line in rand_dat]))
-
 rand_dat_normal = np.asarray([(rand_dat_np[:,x]-rand_dat_np[:,x].min())/(rand_dat_np[:,x].max()-rand_dat_np[:,x].min()) for x in range(rand_dat_np.shape[1])])
-print(rand_dat_normal.shape)
 drop_size_fit = Rbf(*rand_dat_normal, numpy.asarray([dat_line["droplet_size"] for dat_line in rand_dat]),epsilon = 0.001)
 gen_rate_fit = Rbf(*rand_dat_normal, numpy.asarray([dat_line["generation_rate"] for dat_line in rand_dat]),epsilon = 0.001)
 
@@ -88,12 +81,12 @@ def getClosestPoint(droplet_size_wanted,generation_rate_wanted):
 	return min_point
 
 
-O1_errors = []
-O2_errors = []
+drop_size_errors = []
+generation_rate_errors = []
 
-O1_nonmod_errors = []
-O2_nonmod_errors = []
-for i in range(100):
+drop_size_nonmod_errors = []
+generation_rate_nonmod_errors = []
+for i in tqdm(range(100)):
 		dummy_inputs = {"orifice_size":random()*250+50,
 			"aspect_ratio":random()*2+1,
 			"width_ratio":random()*2+2,
@@ -103,7 +96,6 @@ for i in range(100):
 			"capillary_number":random()*(0.2222-0.02)+0.02,
 			"flow_rate_ratio":random()*18+2}
 
-		#dummy_inputs = rand_dat[round(random()*100)]
 		wanted_vals = equationOutputs(dummy_inputs)
 		
 		target_vals = wanted_vals
@@ -114,29 +106,19 @@ for i in range(100):
 		res = minimize(rbf_error, start_pos, method='SLSQP',bounds = tuple([(0,1) for x in input_headers]))
 
 		results = {input_headers[i]:res["x"][i]*(ranges_dict[input_headers[i]][1]-ranges_dict[input_headers[i]][0])+ranges_dict[input_headers[i]][0] for i in range(len(input_headers))}
-		print(results)
-		print(equationOutputs(results)[1] - wanted_vals[1])
-		# print(dummy_inputs)
-		# print(mtest(*[dummy_inputs[x] for x in input_headers]) - wanted_vals[0])
-		#
-		# min_val = float("inf")
-		# min_index = 0
-		# for index,val in np.ndenumerate(droplet_size_grid):
-		#	if(abs(val - wanted_vals[0])<min_val):
-		#		min_index = index
-		#		min_val = abs(val-wanted_vals[0])
-		# results = {x:conversion_eqs[x](min_index[index]) for index,x in enumerate(input_headers)}
 
-		O1_errors.append( abs(equationOutputs(results)[0] - wanted_vals[0])/wanted_vals[0])
-		O2_errors.append( abs(equationOutputs(results)[1] - wanted_vals[1])/wanted_vals[1])
-		O1_nonmod_errors.append( abs(equationOutputs(closest_point)[0] - wanted_vals[0])/wanted_vals[0])
-		O2_nonmod_errors.append( abs(equationOutputs(closest_point)[1] - wanted_vals[1])/wanted_vals[1])
+		drop_size_errors.append( abs(equationOutputs(results)[0] - wanted_vals[0])/wanted_vals[0])
+		generation_rate_errors.append( abs(equationOutputs(results)[1] - wanted_vals[1])/wanted_vals[1])
+		drop_size_nonmod_errors.append( abs(equationOutputs(closest_point)[0] - wanted_vals[0])/wanted_vals[0])
+		generation_rate_nonmod_errors.append( abs(equationOutputs(closest_point)[1] - wanted_vals[1])/wanted_vals[1])
 		
 
 		
-print(sum(O1_errors)/len(O1_errors))
-print(sum(O1_nonmod_errors)/len(O1_nonmod_errors))
-print(sum(O2_errors)/len(O2_errors))
-print(sum(O2_nonmod_errors)/len(O2_nonmod_errors))
+print()
+print("drop size errors:			"+str(round(sum(drop_size_errors)/len(drop_size_errors) * 100,4)).zfill(7) + "%")
+print("generation rate errors:			"+str(round(sum(generation_rate_errors)/len(generation_rate_errors) * 100,4)).zfill(7) + "%")
+print()
+print("drop size closest point errors:		"+str(round(sum(drop_size_nonmod_errors)/len(drop_size_nonmod_errors) * 100,4)).zfill(7) + "%")
+print("generation rate closest point errors:	"+str(round(sum(generation_rate_nonmod_errors)/len(generation_rate_nonmod_errors) * 100,4)).zfill(7) + "%")
 
 
