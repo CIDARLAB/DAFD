@@ -104,8 +104,8 @@ class DAFD_GUI:
 		size_label = tkinter.Label(size_frame,width=20,anchor="e")
 		size_label.pack(side="left")
 		size_label["text"]="Droplet Size: "
-		self.generation_rate_entry = tkinter.Entry(size_frame)
-		self.generation_rate_entry.pack(side="left")
+		self.size_entry = tkinter.Entry(size_frame)
+		self.size_entry.pack(side="left")
 
 
 
@@ -116,9 +116,12 @@ class DAFD_GUI:
 		self.results_label = tkinter.Label(results_frame)
 		self.results_label.pack(side="top")
 
+		self.it = InterModel()
+		
 		self.root.mainloop()
 
 	def runInterp(self):
-		print("A")
+		results = self.it.interpolate(float(self.size_entry.get()),float(self.generation_rate_entry.get()))
+		self.results_label["text"] = "\n".join([str(x) + " : " + str(results[x]) for x in results])
 
 DAFD_GUI()
