@@ -37,8 +37,8 @@ stddev_list = [stddev_dict[x] for x in input_headers]
 
 rand_dat_np = numpy.asarray([[dat_line[x] for x in input_headers] for dat_line in rand_dat])
 rand_dat_normal = np.asarray([(rand_dat_np[:,x]-rand_dat_np[:,x].min())/(rand_dat_np[:,x].max()-rand_dat_np[:,x].min()) for x in range(rand_dat_np.shape[1])])
-drop_size_fit = Rbf(*rand_dat_normal, numpy.asarray([dat_line["droplet_size"] for dat_line in rand_dat]),epsilon = 0.001)
-gen_rate_fit = Rbf(*rand_dat_normal, numpy.asarray([dat_line["generation_rate"] for dat_line in rand_dat]),epsilon = 0.001)
+drop_size_fit = Rbf(*rand_dat_normal, numpy.asarray([dat_line["droplet_size"] for dat_line in rand_dat]))
+gen_rate_fit = Rbf(*rand_dat_normal, numpy.asarray([dat_line["generation_rate"] for dat_line in rand_dat]))
 
 
 
