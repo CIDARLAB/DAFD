@@ -148,7 +148,13 @@ class DAFD_GUI:
 				else:
 					constraints[input_headers[i]] = (float(entries_list[i]),float(entries_list[i]))
 
-		results = self.it.interpolate(float(self.size_entry.get()),float(self.generation_rate_entry.get()),constraints)
+		desired_vals = {}
+		if(self.size_entry.get()!=""):
+			desired_vals["droplet_size"] = float(self.size_entry.get())
+		if(self.generation_rate_entry.get()!=""):
+			desired_vals["generation_rate"] = float(self.generation_rate_entry.get())
+
+		results = self.it.interpolate(desired_vals,constraints)
 		self.results_label["text"] = "\n".join([str(x) + " : " + str(results[x]) for x in results])
 
 DAFD_GUI()

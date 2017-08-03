@@ -12,14 +12,17 @@ import csv
 class InterModel:
 
 	def __init__(self):
+		noutputs = 2 #Droplet size and generation rate
 		self.rand_dat = []
 		self.input_headers = []
+		self.output_headers = []
 		self.ranges_dict = {}
 		values_dict = {}
 		with open('MicroFluidics_Random.csv') as f:
 			lines = csv.reader(f, delimiter=',')
 			headers = next(lines)
-			self.input_headers = headers[:-2]
+			self.input_headers = headers[:-noutputs]
+			self.output_headers = headers[-noutputs:]
 			for head in headers:
 				values_dict[head] = [] 
 			for row in lines:
@@ -34,8 +37,7 @@ class InterModel:
 		rand_dat_np = numpy.asarray([[dat_line[x] for x in self.input_headers] for dat_line in self.rand_dat])
 		rand_dat_normal = np.asarray([(rand_dat_np[:,x]-rand_dat_np[:,x].min())/(rand_dat_np[:,x].max()-rand_dat_np[:,x].min()) for x in range(rand_dat_np.shape[1])])
 
-		self.drop_size_fit = Rbf(*rand_dat_normal, numpy.asarray([dat_line["droplet_size"] for dat_line in self.rand_dat]))
-		self.gen_rate_fit = Rbf(*rand_dat_normal, numpy.asarray([dat_line["generation_rate"] for dat_line in self.rand_dat]))
+		self.interp_models = {x:Rbf(*rand_dat_normal, numpy.asarray([dat_line[x] for dat_line in self.rand_dat])) for x in self.output_headers}
 
 
 
@@ -47,25 +49,22 @@ class InterModel:
 		return value*(self.ranges_dict[inType][1]-self.ranges_dict[inType][0])+self.ranges_dict[inType][0]
 
 	def rbf_error(self,x):
-		merror1 = abs(self.drop_size_fit(*x) - self.drop_size)
-		merror2 = abs(self.gen_rate_fit(*x) - self.generation_rate)
-		return merror1+merror2
+		merrors = [abs(self.interp_models[head](*x) - self.desired_val_dict[head]) for head in self.desired_val_dict]
+		return sum(merrors)
 
 	def getClosestPoint(self,constraints):
 		self.closest_point = {}
 		min_val = float("inf")
 		for point in self.rand_dat:
-			nval = (abs(point["droplet_size"]-self.drop_size) + 
-				abs(point["generation_rate"]-self.generation_rate) + 
+			nval = (sum([abs(point[x]-self.desired_val_dict[x]) for x in self.desired_val_dict]) +
 				sum([abs(point[x]-(sum(constraints[x])/2)) for x in constraints]))
 			
 			if nval < min_val:
 				self.closest_point = point
 				min_val = nval
 
-	def interpolate(self,drop_size,generation_rate,constraints):
-		self.drop_size = drop_size
-		self.generation_rate = generation_rate
+	def interpolate(self,desired_val_dict,constraints):
+		self.desired_val_dict = desired_val_dict
 
 		self.getClosestPoint(constraints)
 		
