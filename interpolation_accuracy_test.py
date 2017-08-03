@@ -34,7 +34,7 @@ for i in tqdm(range(100)):
 			"flow_rate_ratio":random()*18+2}
 
 		drop_size, generation_rate = equationOutputs(dummy_inputs)
-		results = it.interpolate(drop_size,generation_rate)
+		results = it.interpolate(drop_size,generation_rate,{})
 			
 
 		drop_size_errors.append( abs(equationOutputs(results)[0] - drop_size)/drop_size)

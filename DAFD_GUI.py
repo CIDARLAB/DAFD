@@ -6,7 +6,6 @@ class DAFD_GUI:
 	def __init__(self):
 		self.root = tkinter.Tk()
 
-#orifice_size	aspect_ratio	width_ratio	normalized_orifice_length	normalized_oil_input_width	normalized_water_input_width	capillary_number	flow_rate_ratio	droplet_size	generation_rate
 
 		inputs_frame = tkinter.Frame(self.root)
 		inputs_frame.pack(side="top")
@@ -120,8 +119,36 @@ class DAFD_GUI:
 		
 		self.root.mainloop()
 
+
 	def runInterp(self):
-		results = self.it.interpolate(float(self.size_entry.get()),float(self.generation_rate_entry.get()))
+		entries_list = [self.orifice_size_entry.get(),
+				self.aspect_ratio_entry.get(),
+				self.width_ratio_entry.get(),
+				self.normalized_orifice_length_entry.get(),
+				self.normalized_oil_input_width_entry.get(),
+				self.normalized_water_input_width_entry.get(),
+				self.capillary_number_entry.get(),
+				self.flow_rate_ratio_entry.get()]
+
+		input_headers = ["orifice_size",
+				"aspect_ratio",
+				"width_ratio",
+				"normalized_orifice_length",
+				"normalized_oil_input_width",
+				"normalized_water_input_width",
+				"capillary_number",
+				"flow_rate_ratio"]
+
+		constraints = {}
+		for i in range(len(input_headers)):
+			if(entries_list[i] != ""):
+				if "-" in entries_list[i]:
+					pair = entries_list[i].split("-")
+					constraints[input_headers[i]] = (float(pair[0]),float(pair[1]))
+				else:
+					constraints[input_headers[i]] = (float(entries_list[i]),float(entries_list[i]))
+
+		results = self.it.interpolate(float(self.size_entry.get()),float(self.generation_rate_entry.get()),constraints)
 		self.results_label["text"] = "\n".join([str(x) + " : " + str(results[x]) for x in results])
 
 DAFD_GUI()
