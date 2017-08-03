@@ -1,5 +1,6 @@
 from tqdm import tqdm
 from InterModel import InterModel
+from M5PModel import M5PModel
 from random import random
 
 
@@ -17,12 +18,17 @@ def prod(args):
 		product*=x
 	return product
 
-drop_size_errors = []
-generation_rate_errors = []
+drop_size_it_errors = []
+generation_rate_it_errors = []
 
 drop_size_nonmod_errors = []
 generation_rate_nonmod_errors = []
-it = InterModel()
+
+drop_size_m5p_errors = []
+generation_rate_m5p_errors = []
+
+m5p_model = M5PModel()
+it_model = InterModel()
 for i in tqdm(range(100)):
 		dummy_inputs = {"orifice_size":random()*250+50,
 			"aspect_ratio":random()*2+1,
@@ -34,20 +40,28 @@ for i in tqdm(range(100)):
 			"flow_rate_ratio":random()*18+2}
 
 		drop_size, generation_rate = equationOutputs(dummy_inputs)
-		results = it.interpolate({"droplet_size":drop_size,"generation_rate":generation_rate},{})
+		it_results = it_model.interpolate({"generation_rate":generation_rate},{})
+		m5p_results = m5p_model.interpolate({"generation_rate":generation_rate},{})
 			
 
-		drop_size_errors.append( abs(equationOutputs(results)[0] - drop_size)/drop_size)
-		generation_rate_errors.append( abs(equationOutputs(results)[1] - generation_rate)/generation_rate)
-		drop_size_nonmod_errors.append( abs(equationOutputs(it.closest_point)[0] - drop_size)/drop_size)
-		generation_rate_nonmod_errors.append( abs(equationOutputs(it.closest_point)[1] - generation_rate)/generation_rate)
+		drop_size_m5p_errors.append( abs(equationOutputs(m5p_results)[0] - drop_size)/drop_size)
+		generation_rate_m5p_errors.append( abs(equationOutputs(m5p_results)[1] - generation_rate)/generation_rate)
+
+		drop_size_it_errors.append( abs(equationOutputs(it_results)[0] - drop_size)/drop_size)
+		generation_rate_it_errors.append( abs(equationOutputs(it_results)[1] - generation_rate)/generation_rate)
+		
+		drop_size_nonmod_errors.append( abs(equationOutputs(it_model.closest_point)[0] - drop_size)/drop_size)
+		generation_rate_nonmod_errors.append( abs(equationOutputs(it_model.closest_point)[1] - generation_rate)/generation_rate)
 
 		
 
 		
 print()
-print("drop size errors:			"+str(round(sum(drop_size_errors)/len(drop_size_errors) * 100,4)).zfill(7) + "%")
-print("generation rate errors:			"+str(round(sum(generation_rate_errors)/len(generation_rate_errors) * 100,4)).zfill(7) + "%")
+print("drop size interp errors:		"+str(round(sum(drop_size_it_errors)/len(drop_size_it_errors) * 100,4)).zfill(7) + "%")
+print("generation rate interp errors:		"+str(round(sum(generation_rate_it_errors)/len(generation_rate_it_errors) * 100,4)).zfill(7) + "%")
+print()
+print("drop size m5p errors:			"+str(round(sum(drop_size_m5p_errors)/len(drop_size_m5p_errors) * 100,4)).zfill(7) + "%")
+print("generation rate m5p errors:		"+str(round(sum(generation_rate_m5p_errors)/len(generation_rate_m5p_errors) * 100,4)).zfill(7) + "%")
 print()
 print("drop size closest point errors:		"+str(round(sum(drop_size_nonmod_errors)/len(drop_size_nonmod_errors) * 100,4)).zfill(7) + "%")
 print("generation rate closest point errors:	"+str(round(sum(generation_rate_nonmod_errors)/len(generation_rate_nonmod_errors) * 100,4)).zfill(7) + "%")
