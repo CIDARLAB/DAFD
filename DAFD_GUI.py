@@ -5,6 +5,7 @@ from tkinter import ttk
 class DAFD_GUI:
 	def __init__(self):
 		self.root = tkinter.Tk()
+		self.root.title("DAFD")
 
 
 		inputs_frame = tkinter.Frame(self.root)

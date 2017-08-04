@@ -29,7 +29,7 @@ generation_rate_m5p_errors = []
 
 m5p_model = M5PModel()
 it_model = InterModel()
-for i in tqdm(range(100)):
+for i in tqdm(range(1000)):
 		dummy_inputs = {"orifice_size":random()*250+50,
 			"aspect_ratio":random()*2+1,
 			"width_ratio":random()*2+2,
@@ -40,8 +40,8 @@ for i in tqdm(range(100)):
 			"flow_rate_ratio":random()*18+2}
 
 		drop_size, generation_rate = equationOutputs(dummy_inputs)
-		it_results = it_model.interpolate({"generation_rate":generation_rate},{})
-		m5p_results = m5p_model.interpolate({"generation_rate":generation_rate},{})
+		it_results = it_model.interpolate({"droplet_size":drop_size,"generation_rate":generation_rate},{})
+		m5p_results = m5p_model.interpolate({"droplet_size":drop_size,"generation_rate":generation_rate},{})
 			
 
 		drop_size_m5p_errors.append( abs(equationOutputs(m5p_results)[0] - drop_size)/drop_size)
