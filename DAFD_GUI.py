@@ -1,13 +1,19 @@
+"""A graphical interface to our interpolation modeller"""
+
 from InterModel import InterModel
 import tkinter
 from tkinter import ttk
 
 class DAFD_GUI:
+	"""A class that produces a windowed interface for DAFD"""
+
 	def __init__(self):
+		"""Initialize the GUI components"""
 		self.root = tkinter.Tk()
 		self.root.title("DAFD")
 
 
+		#Pack all input constraint elements together
 		inputs_frame = tkinter.Frame(self.root)
 		inputs_frame.pack(side="top")
 
@@ -82,7 +88,7 @@ class DAFD_GUI:
 
 
 
-
+		#Pack the desired output elements together
 		outputs_frame = tkinter.Frame(self.root,pady=20)
 		outputs_frame.pack(side="top")
 		
@@ -109,6 +115,7 @@ class DAFD_GUI:
 
 
 
+		#Pack the results together
 		results_frame = tkinter.Frame(self.root,pady=20)
 		results_frame.pack(side="top")
 		submit_button = ttk.Button(results_frame, text='Run DAFD',command = self.runInterp)
@@ -116,12 +123,17 @@ class DAFD_GUI:
 		self.results_label = tkinter.Label(results_frame)
 		self.results_label.pack(side="top")
 
+		#Attach the interpolation model to the GUI
 		self.it = InterModel()
 		
+		#Start everything
 		self.root.mainloop()
 
 
 	def runInterp(self):
+		"""Predict an input set based on given constraints and desired outputs"""
+
+		#Entry elements we need to collect from
 		entries_list = [self.orifice_size_entry.get(),
 				self.aspect_ratio_entry.get(),
 				self.width_ratio_entry.get(),
@@ -131,6 +143,7 @@ class DAFD_GUI:
 				self.capillary_number_entry.get(),
 				self.flow_rate_ratio_entry.get()]
 
+		#The keys to the returned values from our InterModel
 		input_headers = ["orifice_size",
 				"aspect_ratio",
 				"width_ratio",
@@ -140,6 +153,7 @@ class DAFD_GUI:
 				"capillary_number",
 				"flow_rate_ratio"]
 
+		#Nice display to give to user
 		input_headers_clean = ["Orifice Size",
 				"Aspect Ratio",
 				"Width Ratio",
@@ -149,22 +163,32 @@ class DAFD_GUI:
 				"Capillary Number",
 				"Flow Rate Ratio"]
 
+		#Get all of our constraints
 		constraints = {}
 		for i in range(len(input_headers)):
 			if(entries_list[i] != ""):
+				#The constraint can either be a single value or a range
 				if "-" in entries_list[i]:
+					#If it is a single value x, the range is x-x
 					pair = entries_list[i].split("-")
 					constraints[input_headers[i]] = (float(pair[0]),float(pair[1]))
 				else:
+					#If it is a range x to y, the range is x-y
 					constraints[input_headers[i]] = (float(entries_list[i]),float(entries_list[i]))
 
+		# Get the desired outputs
+		# Note one can be left blank, in which case the interpolation model will simply operate on the other value's model
 		desired_vals = {}
 		if(self.size_entry.get()!=""):
 			desired_vals["droplet_size"] = float(self.size_entry.get())
 		if(self.generation_rate_entry.get()!=""):
 			desired_vals["generation_rate"] = float(self.generation_rate_entry.get())
 
+		#Return and display the results
 		results = self.it.interpolate(desired_vals,constraints)
 		self.results_label["text"] = "\n".join([str(input_headers_clean[x]) + " : " + str(results[input_headers[x]]) for x in range(len(input_headers))])
 
+
+
+#Executed when script is called from console
 DAFD_GUI()
