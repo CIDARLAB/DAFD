@@ -20,7 +20,7 @@ class DAFD_GUI:
 		orifice_size_frame.pack(side="top")
 		orifice_size_label = tkinter.Label(orifice_size_frame,width=30,anchor="e")
 		orifice_size_label.pack(side="left")
-		orifice_size_label["text"]="Orifice Size: "
+		orifice_size_label["text"]="Orifice Size (µm): "
 		self.orifice_size_entry = tkinter.Entry(orifice_size_frame)
 		self.orifice_size_entry.pack(side="left")
 
@@ -95,7 +95,7 @@ class DAFD_GUI:
 		generation_rate_frame.pack(side="top")
 		generation_rate_label = tkinter.Label(generation_rate_frame,width=30,anchor="e")
 		generation_rate_label.pack(side="left")
-		generation_rate_label["text"]="Generation Rate: "
+		generation_rate_label["text"]="Generation Rate (Hz): "
 		self.generation_rate_entry = tkinter.Entry(generation_rate_frame)
 		self.generation_rate_entry.pack(side="left")
 
@@ -103,7 +103,7 @@ class DAFD_GUI:
 		size_frame.pack(side="top")
 		size_label = tkinter.Label(size_frame,width=30,anchor="e")
 		size_label.pack(side="left")
-		size_label["text"]="Droplet Size: "
+		size_label["text"]="Droplet Diameter (µm): "
 		self.size_entry = tkinter.Entry(size_frame)
 		self.size_entry.pack(side="left")
 
