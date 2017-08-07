@@ -104,7 +104,7 @@ class M5PTree:
 		read_to_leaf = False
 		leaf_lines = []
 		leaf_key = ""
-		with open(tree_output_var_name+".txt","r") as f:
+		with open("M5P_models/"+tree_output_var_name+".tree","r") as f:
 			for line in f:
 				line = line.strip()
 				if "<" in line or ">" in line:
