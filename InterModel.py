@@ -90,8 +90,8 @@ class InterModel:
 		self.closest_point = {}
 		min_val = float("inf")
 		for point in self.rand_dat:
-			nval = (sum([abs(point[x]-self.desired_val_dict[x]) for x in self.desired_val_dict]) +
-				sum([abs(point[x]-(sum(constraints[x])/2)) for x in constraints]))
+			nval = (sum([self.normalize(abs(point[x]-self.desired_val_dict[x]),x) for x in self.desired_val_dict]) +
+				sum([self.normalize(abs(point[x]-(sum(constraints[x])/2)),x) for x in constraints]))
 			
 			if nval < min_val:
 				self.closest_point = point
