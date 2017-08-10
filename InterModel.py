@@ -3,8 +3,6 @@
 from tqdm import tqdm
 from scipy.interpolate import Rbf
 import numpy as np
-import math
-from random import random
 from scipy.optimize import minimize
 import numpy
 import csv

@@ -3,9 +3,6 @@
 Only used now as a comparison tool
 """
 
-from pprint import pprint
-import math
-from random import random
 from scipy.optimize import minimize
 import numpy
 import csv
