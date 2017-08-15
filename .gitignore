@@ -1,4 +1,5 @@
 *.pyc
+*.spec
 *.tree
 /Binaries
 /build
