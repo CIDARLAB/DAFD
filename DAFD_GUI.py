@@ -32,7 +32,7 @@ class DAFD_GUI:
 		orifice_size_frame.pack(side="top")
 		orifice_size_label = tkinter.Label(orifice_size_frame,width=40,anchor="e")
 		orifice_size_label.pack(side="left")
-		orifice_size_label["text"]="Orifice Size (µm) " + "(" + str(round(ranges_dict["orifice_size"][0],2)) + "-" + str(round(ranges_dict["orifice_size"][1],2)) + ")" + ": "
+		orifice_size_label["text"]="Orifice Size " + "(" + str(round(ranges_dict["orifice_size"][0],2)) + "-" + str(round(ranges_dict["orifice_size"][1],2)) + ")" + " (µm): "
 		self.orifice_size_entry = tkinter.Entry(orifice_size_frame)
 		self.orifice_size_entry.pack(side="left")
 
@@ -107,7 +107,8 @@ class DAFD_GUI:
 		generation_rate_frame.pack(side="top")
 		generation_rate_label = tkinter.Label(generation_rate_frame,width=40,anchor="e")
 		generation_rate_label.pack(side="left")
-		generation_rate_label["text"]="Generation Rate (Hz): "
+		generation_rate_label["text"]="Generation Rate " + "(" + str(round(ranges_dict["generation_rate"][0],2)) + "-" + str(round(ranges_dict["generation_rate"][1],2)) + ")" + " (Hz): "
+
 		self.generation_rate_entry = tkinter.Entry(generation_rate_frame)
 		self.generation_rate_entry.pack(side="left")
 
@@ -115,7 +116,8 @@ class DAFD_GUI:
 		size_frame.pack(side="top")
 		size_label = tkinter.Label(size_frame,width=40,anchor="e")
 		size_label.pack(side="left")
-		size_label["text"]="Droplet Diameter (µm): "
+		size_label["text"]="Droplet Diameter " + "(" + str(round(ranges_dict["droplet_size"][0],2)) + "-" + str(round(ranges_dict["droplet_size"][1],2)) + ")" + " (μm): "
+
 		self.size_entry = tkinter.Entry(size_frame)
 		self.size_entry.pack(side="left")
 
@@ -180,9 +182,9 @@ class DAFD_GUI:
 					#If it is a range x to y, the range is x-y
 					wanted_constraint = (float(entries_list[i]),float(entries_list[i]))
 
-				if wanted_constraint[0] < self.it.ranges_dict[input_headers[i]][0]:
+				if wanted_constraint[0] <= self.it.ranges_dict[input_headers[i]][0]:
 					tkinter.messagebox.showwarning("Out of range constraint",input_headers_clean[i] + " was too low. Constraint ignored")
-				elif wanted_constraint[1] > self.it.ranges_dict[input_headers[i]][0]:
+				elif wanted_constraint[1] >= self.it.ranges_dict[input_headers[i]][0]:
 					tkinter.messagebox.showwarning("Out of range constraint",input_headers_clean[i] + " was too high. Constraint ignored")
 				else:
 					constraints[input_headers[i]] = wanted_constraint
@@ -191,9 +193,17 @@ class DAFD_GUI:
 		# Note one can be left blank, in which case the interpolation model will simply operate on the other value's model
 		desired_vals = {}
 		if(self.size_entry.get()!=""):
-			desired_vals["droplet_size"] = float(self.size_entry.get())
+			wanted_val = float(self.size_entry.get())
+			if wanted_val >= self.it.ranges_dict["droplet_size"][0] and wanted_val <= self.it.ranges_dict["droplet_size"][1]:
+				desired_vals["droplet_size"] = wanted_val
+			else:
+				tkinter.messagebox.showwarning("Out of range desired value","Droplet size was out of range. Value was ignored")
 		if(self.generation_rate_entry.get()!=""):
-			desired_vals["generation_rate"] = float(self.generation_rate_entry.get())
+			wanted_val = float(self.generation_rate_entry.get())
+			if wanted_val >= self.it.ranges_dict["generation_rate"][0] and wanted_val <= self.it.ranges_dict["generation_rate"][1]:
+				desired_vals["generation_rate"] = wanted_val
+			else:
+				tkinter.messagebox.showwarning("Out of range desired value","Generation rate was out of range. Value was ignored")
 
 		#Return and display the results
 		results = self.it.interpolate(desired_vals,constraints)
