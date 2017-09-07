@@ -184,7 +184,7 @@ class DAFD_GUI:
 
 				if wanted_constraint[0] <= self.it.ranges_dict[input_headers[i]][0]:
 					tkinter.messagebox.showwarning("Out of range constraint",input_headers_clean[i] + " was too low. Constraint ignored")
-				elif wanted_constraint[1] >= self.it.ranges_dict[input_headers[i]][0]:
+				elif wanted_constraint[1] >= self.it.ranges_dict[input_headers[i]][1]:
 					tkinter.messagebox.showwarning("Out of range constraint",input_headers_clean[i] + " was too high. Constraint ignored")
 				else:
 					constraints[input_headers[i]] = wanted_constraint
