@@ -17,7 +17,9 @@ class DAFD_GUI:
 		#Attach the interpolation model to the GUI
 		self.it = InterModel()
 
-		ranges_dict = self.it.ranges_dict
+		self.ranges_dict = self.it.ranges_dict
+		self.input_headers = self.it.input_headers
+		self.output_headers = self.it.output_headers
 
 		#Pack all input constraint elements together
 		inputs_frame = tkinter.Frame(self.root)
@@ -28,71 +30,17 @@ class DAFD_GUI:
 		inputs_header["text"] = "Constraints"
 		inputs_header.config(font=("Times", 20))
 
-		orifice_size_frame = tkinter.Frame(inputs_frame)
-		orifice_size_frame.pack(side="top")
-		orifice_size_label = tkinter.Label(orifice_size_frame,width=40,anchor="e")
-		orifice_size_label.pack(side="left")
-		orifice_size_label["text"]="Orifice Size " + "(" + str(round(ranges_dict["orifice_size"][0],2)) + "-" + str(round(ranges_dict["orifice_size"][1],2)) + ")" + " (µm): "
-		self.orifice_size_entry = tkinter.Entry(orifice_size_frame)
-		self.orifice_size_entry.pack(side="left")
+		self.entries_dict = {}
 
-		aspect_ratio_frame = tkinter.Frame(inputs_frame)
-		aspect_ratio_frame.pack(side="top")
-		aspect_ratio_label = tkinter.Label(aspect_ratio_frame,width=40,anchor="e")
-		aspect_ratio_label.pack(side="left")
-		aspect_ratio_label["text"]="Aspect ratio " + "(" + str(round(ranges_dict["aspect_ratio"][0],2)) + "-" + str(round(ranges_dict["aspect_ratio"][1],2)) + ")" + ": "
-		self.aspect_ratio_entry = tkinter.Entry(aspect_ratio_frame)
-		self.aspect_ratio_entry.pack(side="left")
-
-		width_ratio_frame = tkinter.Frame(inputs_frame)
-		width_ratio_frame.pack(side="top")
-		width_ratio_label = tkinter.Label(width_ratio_frame,width=40,anchor="e")
-		width_ratio_label.pack(side="left")
-		width_ratio_label["text"]="Width Ratio " + "(" + str(round(ranges_dict["width_ratio"][0],2)) + "-" + str(round(ranges_dict["width_ratio"][1],2)) + ")" + ": "
-		self.width_ratio_entry = tkinter.Entry(width_ratio_frame)
-		self.width_ratio_entry.pack(side="left")
-
-		normalized_orifice_length_frame = tkinter.Frame(inputs_frame)
-		normalized_orifice_length_frame.pack(side="top")
-		normalized_orifice_length_label = tkinter.Label(normalized_orifice_length_frame,width=40,anchor="e")
-		normalized_orifice_length_label.pack(side="left")
-		normalized_orifice_length_label["text"]="Normalized Orifice Length " + "(" + str(round(ranges_dict["normalized_orifice_length"][0],2)) + "-" + str(round(ranges_dict["normalized_orifice_length"][1],2)) + ")" + ": "
-		self.normalized_orifice_length_entry = tkinter.Entry(normalized_orifice_length_frame)
-		self.normalized_orifice_length_entry.pack(side="left")
-
-		normalized_oil_input_width_frame = tkinter.Frame(inputs_frame)
-		normalized_oil_input_width_frame.pack(side="top")
-		normalized_oil_input_width_label = tkinter.Label(normalized_oil_input_width_frame,width=40,anchor="e")
-		normalized_oil_input_width_label.pack(side="left")
-		normalized_oil_input_width_label["text"]="Normalized Oil Input Width " + "(" + str(round(ranges_dict["normalized_oil_input_width"][0],2)) + "-" + str(round(ranges_dict["normalized_oil_input_width"][1],2)) + ")" + ": "
-		self.normalized_oil_input_width_entry = tkinter.Entry(normalized_oil_input_width_frame)
-		self.normalized_oil_input_width_entry.pack(side="left")
-
-		normalized_water_input_width_frame = tkinter.Frame(inputs_frame)
-		normalized_water_input_width_frame.pack(side="top")
-		normalized_water_input_width_label = tkinter.Label(normalized_water_input_width_frame,width=40,anchor="e")
-		normalized_water_input_width_label.pack(side="left")
-		normalized_water_input_width_label["text"]="Normalized Water Input Width " + "(" + str(round(ranges_dict["normalized_water_input_width"][0],2)) + "-" + str(round(ranges_dict["normalized_water_input_width"][1],2)) + ")" + ": "
-		self.normalized_water_input_width_entry = tkinter.Entry(normalized_water_input_width_frame)
-		self.normalized_water_input_width_entry.pack(side="left")
-
-		capillary_number_frame = tkinter.Frame(inputs_frame)
-		capillary_number_frame.pack(side="top")
-		capillary_number_label = tkinter.Label(capillary_number_frame,width=40,anchor="e")
-		capillary_number_label.pack(side="left")
-		capillary_number_label["text"]="Capillary Number " + "(" + str(round(ranges_dict["capillary_number"][0],2)) + "-" + str(round(ranges_dict["capillary_number"][1],2)) + ")" + ": "
-		self.capillary_number_entry = tkinter.Entry(capillary_number_frame)
-		self.capillary_number_entry.pack(side="left")
-
-		flow_rate_ratio_frame = tkinter.Frame(inputs_frame)
-		flow_rate_ratio_frame.pack(side="top")
-		flow_rate_ratio_label = tkinter.Label(flow_rate_ratio_frame,width=40,anchor="e")
-		flow_rate_ratio_label.pack(side="left")
-		flow_rate_ratio_label["text"]="Flow Rate Ratio " + "(" + str(round(ranges_dict["flow_rate_ratio"][0],2)) + "-" + str(round(ranges_dict["flow_rate_ratio"][1],2)) + ")" + ": "
-		self.flow_rate_ratio_entry = tkinter.Entry(flow_rate_ratio_frame)
-		self.flow_rate_ratio_entry.pack(side="left")
-
-
+		for param_name in self.input_headers:
+			param_frame = tkinter.Frame(inputs_frame)
+			param_frame.pack(side="top")
+			param_label = tkinter.Label(param_frame,width=40,anchor="e")
+			param_label.pack(side="left")
+			param_label["text"] = param_name + " (" + str(round(self.ranges_dict[param_name][0],2)) + "-" + str(round(self.ranges_dict[param_name][1],2)) + ") : "
+			param_entry = tkinter.Entry(param_frame)
+			param_entry.pack(side="left")
+			self.entries_dict[param_name] = param_entry
 
 		#Pack the desired output elements together
 		outputs_frame = tkinter.Frame(self.root,pady=20)
@@ -103,23 +51,15 @@ class DAFD_GUI:
 		outputs_header["text"] = "Desired Values"
 		outputs_header.config(font=("Times", 20))
 
-		generation_rate_frame = tkinter.Frame(outputs_frame)
-		generation_rate_frame.pack(side="top")
-		generation_rate_label = tkinter.Label(generation_rate_frame,width=40,anchor="e")
-		generation_rate_label.pack(side="left")
-		generation_rate_label["text"]="Generation Rate " + "(" + str(round(ranges_dict["generation_rate"][0],2)) + "-" + str(round(ranges_dict["generation_rate"][1],2)) + ")" + " (Hz): "
-
-		self.generation_rate_entry = tkinter.Entry(generation_rate_frame)
-		self.generation_rate_entry.pack(side="left")
-
-		size_frame = tkinter.Frame(outputs_frame)
-		size_frame.pack(side="top")
-		size_label = tkinter.Label(size_frame,width=40,anchor="e")
-		size_label.pack(side="left")
-		size_label["text"]="Droplet Diameter " + "(" + str(round(ranges_dict["droplet_size"][0],2)) + "-" + str(round(ranges_dict["droplet_size"][1],2)) + ")" + " (μm): "
-
-		self.size_entry = tkinter.Entry(size_frame)
-		self.size_entry.pack(side="left")
+		for param_name in self.output_headers:
+			param_frame = tkinter.Frame(outputs_frame)
+			param_frame.pack(side="top")
+			param_label = tkinter.Label(param_frame,width=40,anchor="e")
+			param_label.pack(side="left")
+			param_label["text"] = param_name + " (" + str(round(self.ranges_dict[param_name][0],2)) + "-" + str(round(self.ranges_dict[param_name][1],2)) + ") : "
+			param_entry = tkinter.Entry(param_frame)
+			param_entry.pack(side="left")
+			self.entries_dict[param_name] = param_entry
 
 
 
@@ -139,75 +79,42 @@ class DAFD_GUI:
 	def runInterp(self):
 		"""Predict an input set based on given constraints and desired outputs"""
 
-		#Entry elements we need to collect from
-		entries_list = [self.orifice_size_entry.get(),
-				self.aspect_ratio_entry.get(),
-				self.width_ratio_entry.get(),
-				self.normalized_orifice_length_entry.get(),
-				self.normalized_oil_input_width_entry.get(),
-				self.normalized_water_input_width_entry.get(),
-				self.capillary_number_entry.get(),
-				self.flow_rate_ratio_entry.get()]
-
-		#The keys to the returned values from our InterModel
-		input_headers = ["orifice_size",
-				"aspect_ratio",
-				"width_ratio",
-				"normalized_orifice_length",
-				"normalized_oil_input_width",
-				"normalized_water_input_width",
-				"capillary_number",
-				"flow_rate_ratio"]
-
-		#Nice display to give to user
-		input_headers_clean = ["Orifice Size",
-				"Aspect Ratio",
-				"Width Ratio",
-				"Normalized Orifice Length",
-				"Normalized Oil Input Width",
-				"Normalized Water Input Width",
-				"Capillary Number",
-				"Flow Rate Ratio"]
-
 		#Get all of our constraints
 		constraints = {}
-		for i in range(len(input_headers)):
-			if(entries_list[i] != ""):
+		for param_name in self.input_headers:
+			param_entry = self.entries_dict[param_name].get()
+			if param_entry != "":
 				#The constraint can either be a single value or a range
-				if "-" in entries_list[i]:
-					#If it is a single value x, the range is x-x
-					pair = entries_list[i].split("-")
+				if "-" in param_entry:
+					#If it is a range x to y, the range is x-y
+					pair = param_entry.split("-")
 					wanted_constraint = (float(pair[0]),float(pair[1]))
 				else:
-					#If it is a range x to y, the range is x-y
-					wanted_constraint = (float(entries_list[i]),float(entries_list[i]))
+					#If it is a single value x, the range is x-x
+					wanted_constraint = (float(param_entry),float(param_entry))
 
-				if wanted_constraint[0] <= self.it.ranges_dict[input_headers[i]][0]:
-					tkinter.messagebox.showwarning("Out of range constraint",input_headers_clean[i] + " was too low. Constraint ignored")
-				elif wanted_constraint[1] >= self.it.ranges_dict[input_headers[i]][1]:
-					tkinter.messagebox.showwarning("Out of range constraint",input_headers_clean[i] + " was too high. Constraint ignored")
+				if wanted_constraint[0] <= self.ranges_dict[param_name][0]:
+					tkinter.messagebox.showwarning("Out of range constraint",param_name + " was too low. Constraint ignored")
+				elif wanted_constraint[1] >= self.ranges_dict[param_name][1]:
+					tkinter.messagebox.showwarning("Out of range constraint",param_name + " was too high. Constraint ignored")
 				else:
-					constraints[input_headers[i]] = wanted_constraint
+					constraints[param_name] = wanted_constraint
 
 		# Get the desired outputs
 		# Note one can be left blank, in which case the interpolation model will simply operate on the other value's model
 		desired_vals = {}
-		if(self.size_entry.get()!=""):
-			wanted_val = float(self.size_entry.get())
-			if wanted_val >= self.it.ranges_dict["droplet_size"][0] and wanted_val <= self.it.ranges_dict["droplet_size"][1]:
-				desired_vals["droplet_size"] = wanted_val
-			else:
-				tkinter.messagebox.showwarning("Out of range desired value","Droplet size was out of range. Value was ignored")
-		if(self.generation_rate_entry.get()!=""):
-			wanted_val = float(self.generation_rate_entry.get())
-			if wanted_val >= self.it.ranges_dict["generation_rate"][0] and wanted_val <= self.it.ranges_dict["generation_rate"][1]:
-				desired_vals["generation_rate"] = wanted_val
-			else:
-				tkinter.messagebox.showwarning("Out of range desired value","Generation rate was out of range. Value was ignored")
+		for param_name in self.output_headers:
+			param_entry = self.entries_dict[param_name].get()
+			if param_entry != "":
+				wanted_val = float(param_entry)
+				if wanted_val >= self.ranges_dict[param_name][0] and wanted_val <= self.ranges_dict[param_name][1]:
+					desired_vals[param_name] = wanted_val
+				else:
+					tkinter.messagebox.showwarning("Out of range desired value", param_name + " was out of range. Value was ignored")
 
 		#Return and display the results
 		results = self.it.interpolate(desired_vals,constraints)
-		self.results_label["text"] = "\n".join([str(input_headers_clean[x]) + " : " + str(results[input_headers[x]]) for x in range(len(input_headers))])
+		self.results_label["text"] = "\n".join([x + " : " + str(results[x]) for x in self.input_headers])
 
 
 
