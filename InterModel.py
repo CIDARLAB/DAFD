@@ -31,7 +31,7 @@ class InterModel:
 		self.ranges_dict = {} #The min and max of each input type
 		values_dict = {} #Temporary variable used for calculating ranges. Dict with input header as key and a list of all values of that header as values
 
-		with open(resource_path('MicroFluidics_Random.csv')) as f:
+		with open(resource_path('ExperimentalResults.csv')) as f:
 			#Make a list of lists of our csv data
 			lines = csv.reader(f, delimiter=',')
 
