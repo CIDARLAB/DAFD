@@ -1,6 +1,6 @@
 """A graphical interface to our interpolation modeller"""
-
 from InterModel import InterModel
+from ForwardModel import ForwardModel
 import tkinter
 from tkinter import ttk
 import tkinter.messagebox
@@ -66,8 +66,10 @@ class DAFD_GUI:
 		#Pack the results together
 		results_frame = tkinter.Frame(self.root,pady=20)
 		results_frame.pack(side="top")
-		submit_button = ttk.Button(results_frame, text='Run DAFD',command = self.runInterp)
-		submit_button.pack(side="top")
+		submit_dafd_button = ttk.Button(results_frame, text='Run DAFD',command = self.runInterp)
+		submit_dafd_button.pack(side="top")
+		submit_fwd_button = ttk.Button(results_frame, text='Run Forward Model',command = self.runForward)
+		submit_fwd_button.pack(side="top")
 		self.results_label = tkinter.Label(results_frame)
 		self.results_label.pack(side="top")
 
@@ -115,6 +117,16 @@ class DAFD_GUI:
 		#Return and display the results
 		results = self.it.interpolate(desired_vals,constraints)
 		self.results_label["text"] = "\n".join([x + " : " + str(results[x]) for x in self.input_headers])
+	
+	def runForward(self):
+		"""Predict the outputs based on the chip geometry (Normal feed-forward network) """
+
+		#Get all the chip geometry values
+		features = {}
+		features = {x: float(self.entries_dict[x].get()) for x in self.input_headers}
+		fwd_model = ForwardModel()
+		outs = fwd_model.predict(features)
+		self.results_label["text"] = "\n".join([x + " : " + str(outs[x]) for x in outs])
 
 
 
