@@ -1,7 +1,7 @@
-"""The interpolation model that DAFD runs on"""
+""" An alternative SVR Model """
 
 from tqdm import tqdm
-from scipy.interpolate import Rbf
+from sklearn.svm import SVR
 from sklearn.linear_model import LinearRegression
 import numpy as np
 from scipy.optimize import minimize
@@ -24,7 +24,7 @@ def resource_path(relative_path):
 
 	return os.path.join(base_path, relative_path)
 
-class InterModel:
+class SVRModel:
 	"""The interpolation models plus wrapper functions to use them"""
 
 	def __init__(self):
@@ -74,12 +74,18 @@ class InterModel:
 			normal_inputs = {x:self.normalize(var_point[x],x) for x in self.input_headers}
 			var_dat_normal.append([normal_inputs[x] for x in normal_inputs])
 
-		var_dat_normal = np.asarray(var_dat_normal).T
-		output_vars = {x:numpy.asarray([dat_line[x] for dat_line in self.var_dat]).T for x in self.output_headers}
+		var_dat_normal = np.asarray(var_dat_normal)
+		output_vars = {x:numpy.asarray([dat_line[x] for dat_line in self.var_dat]) for x in self.output_headers}
 			
 
-		#Build an interpolation model for each output variable
-		self.interp_models = {x:Rbf(*var_dat_normal, output_vars[x]) for x in self.output_headers}
+		self.svr_models = {}
+
+		#Build an SVR model for each output variable
+		for header in self.output_headers:
+			SVR_model = SVR()
+			SVR_model.fit(var_dat_normal,output_vars[header])
+			self.svr_models[header] = SVR_model 
+
 
 	def make_models_reduced(self,dat_subset):
 		""" Make the interpolation model from a subset of the data"""
@@ -89,11 +95,16 @@ class InterModel:
 			normal_inputs = {x:self.normalize(var_point[x],x) for x in self.input_headers}
 			var_dat_normal.append([normal_inputs[x] for x in normal_inputs])
 
-		var_dat_normal = np.asarray(var_dat_normal).T
-		output_vars = {x:numpy.asarray([dat_line[x] for dat_line in dat_subset]).T for x in self.output_headers}
+		var_dat_normal = np.asarray(var_dat_normal)
+		output_vars = {x:numpy.asarray([dat_line[x] for dat_line in dat_subset]) for x in self.output_headers}
 
-		#Build an interpolation model for each output variable
-		self.interp_models = {x:Rbf(*var_dat_normal, output_vars[x]) for x in self.output_headers}
+		#Build an SVR model for each output variable
+		for header in self.output_headers:
+			SVR_model = SVR()
+			SVR_model = SVR(C=100000,epsilon=0.00001)
+			SVR_model.fit(var_dat_normal,output_vars[header])
+			self.svr_models[header] = SVR_model 
+
 
 	def validate_model(self, test_dat):
 		""" Get test accuracies for the model """
@@ -103,7 +114,7 @@ class InterModel:
 			for test_point in test_dat:
 				normal_inputs = {x:self.normalize(test_point[x],x) for x in self.input_headers}
 				actual_val = test_point[header]
-				pred_val = self.interp_models[header](*[normal_inputs[x] for x in normal_inputs])
+				pred_val = self.svr_models[header].predict(np.asarray([normal_inputs[x] for x in normal_inputs]).reshape(1,-1))
 				val_header.append([actual_val,pred_val,abs(pred_val-actual_val)])
 			validations[header] = val_header
 		return validations
@@ -123,6 +134,7 @@ class InterModel:
 
 		grs = validations[self.output_headers[0]]
 		print(self.output_headers[0])
+
 		
 		pred_vals = np.asarray([x[0] for x in grs])
 		actual_vals = np.asarray([x[1] for x in grs])
@@ -133,8 +145,7 @@ class InterModel:
 		print(reg.score(pred_vals.reshape(-1,1),actual_vals.reshape(-1,1)))
 
 		for i in range(len(pred_vals)):
-			print(str(pred_vals[i]) + "," + str(actual_vals[i]))
-
+			print(str(pred_vals[i]) + "," + str(actual_vals[i][0]))
 
 		plt.show()
 
@@ -224,5 +235,7 @@ class InterModel:
 		return results
 	
 	
-it = InterModel()
-it.cross_validate()
+        
+svrm = SVRModel()
+svrm.cross_validate()
+
