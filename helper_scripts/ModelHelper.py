@@ -5,13 +5,14 @@ import sys
 
 def resource_path(relative_path):
 	""" Get absolute path to resource, works for dev and for PyInstaller """
-	try:
-		# PyInstaller creates a temp folder and stores path in _MEIPASS
-		base_path = sys._MEIPASS
-	except Exception:
-		base_path = os.path.abspath(".")
-
-	return os.path.join(base_path, relative_path)
+	#try:
+	#	# PyInstaller creates a temp folder and stores path in _MEIPASS
+	#	base_path = sys._MEIPASS
+	#except Exception:
+	#	base_path = os.path.abspath(".")
+	#
+	#return os.path.join(base_path, relative_path)
+	return os.path.dirname(os.path.abspath(__file__)) + "/" + relative_path
 
 
 
@@ -19,14 +20,19 @@ def resource_path(relative_path):
 
 
 class ModelHelper:
+	"""
+	This class handles data retrieval, partitioning, and normalization.
+	Singleton
+	"""
 
-	RESOURCE_PATH = "ExperimentalResultsRegime_chipNum.csv"		# Experimental data location
-	NUM_OUTPUTS = 2												# Droplet Generation Rate + Droplet Size
+	RESOURCE_PATH = "experimental_data/ExperimentalResults.csv"		# Experimental data location
+	NUM_OUTPUTS = 2													# Droplet Generation Rate + Droplet Size
 
 	instance = None				# Singleton
 	input_headers = []			# Feature names (orifice size, aspect ratio, etc...)
 	output_headers = []			# Output names (droplet size, generation rate)
 	all_dat = []				# Raw experimental data
+	train_data_size = 0			# Number of data points in the training set
 	train_features_dat = []		# Normalized and reduced features from all_dat
 	train_labels_dat = {}		# Normalized and reduced labels from all_dat
 	train_regime_dat = []		# Regime labels from all_dat
@@ -51,7 +57,8 @@ class ModelHelper:
 	def get_data(self):
 		""" Read the data from the CSV list """
 
-		values_dict = {}  # Temporary variable used for calculating ranges. Dict with input header as key and a list of all values of that header as values
+		# Temporary variable used for calculating ranges. Dict with input header as key and a list of all values of that header as values
+		values_dict = {}
 
 		with open(resource_path(self.RESOURCE_PATH)) as f:
 			# Make a list of lists of our csv data
@@ -60,7 +67,7 @@ class ModelHelper:
 			# Save header info
 			headers = next(lines)
 			self.input_headers = [x for x in headers[:-self.NUM_OUTPUTS] if
-								  x != "regime" and x != "chip_num"]  # Regime and chip number isn't a feature we want to train our regressor on
+									x != "regime" and x != "chip_number"]  # Regime and chip number isn't a feature we want to train our regressor on
 			self.output_headers = headers[-self.NUM_OUTPUTS:]
 
 			# Init values dict
@@ -90,6 +97,18 @@ class ModelHelper:
 
 		return ret_list
 
+	def denormalize_set(self, values):
+		""" Denormalizes a set of features
+		Args:
+			values: list of features to be denormalized (same order as input_headers)
+
+		Returns list of denormalized features in the same order as input_headers
+		"""
+		ret_list = []
+		for i, header in enumerate(self.input_headers):
+			ret_list.append(self.denormalize(values[i], header))
+
+		return ret_list
 
 	def normalize(self, value, inType):
 		"""Return min max normalization of a variable
@@ -136,5 +155,7 @@ class ModelHelper:
 			if regime_label not in self.regime_indices:
 				self.regime_indices[regime_label] = []
 			self.regime_indices[regime_label].append(len(self.train_features_dat)-1)
+
+		self.train_data_size = len(self.train_features_dat)
 
 

@@ -1,8 +1,7 @@
-""" An alternative SVR Model """
+"""The interpolation model that DAFD runs on"""
 
 from tqdm import tqdm
-from sklearn.svm import SVR
-from sklearn.svm import SVC
+from scipy.interpolate import Rbf
 from sklearn.linear_model import LinearRegression
 import numpy as np
 from scipy.optimize import minimize
@@ -25,7 +24,7 @@ def resource_path(relative_path):
 
 	return os.path.join(base_path, relative_path)
 
-class SVRModel:
+class InterModel:
 	"""The interpolation models plus wrapper functions to use them"""
 
 	def __init__(self):
@@ -36,7 +35,7 @@ class SVRModel:
 		self.output_headers = [] #List of the names of our csv output columns
 		self.ranges_dict = {} #The min and max of each input type
 		self.read_data()
-		#self.make_models()
+		self.make_models()
 
 	
 	def read_data(self):
@@ -44,18 +43,18 @@ class SVRModel:
 
 		values_dict = {} #Temporary variable used for calculating ranges. Dict with input header as key and a list of all values of that header as values
 
-		with open(resource_path('ExperimentalResultsRegime_chipNum.csv')) as f:
+		with open(resource_path('ExperimentalResults.csv')) as f:
 			#Make a list of lists of our csv data
 			lines = csv.reader(f, delimiter=',')
 
 			#Save header info
 			headers = next(lines)
-			self.input_headers = [x for x in headers[:-self.noutputs] if x!= "regime" and x!= "chip_num"] # Regime and chip number isn't a feature we want to train our regressor on
+			self.input_headers = headers[:-self.noutputs]
 			self.output_headers = headers[-self.noutputs:]
-			
+
 			#Init values dict
 			for head in headers:
-				values_dict[head] = [] 
+				values_dict[head] = []
 
 			#Get save the info of each row to var_dat and values_dict
 			for row in lines:
@@ -67,12 +66,20 @@ class SVRModel:
 		for head in headers:
 			self.ranges_dict[head] = (min(values_dict[head]),max(values_dict[head]))
 
-		
-	
 	def make_models(self):
 		""" Make the interpolation model from the data"""
-		self.make_models_reduced(self.var_dat)
+		#Min max normalize all of our data
+		var_dat_normal = []
+		for var_point in self.var_dat:
+			normal_inputs = {x:self.normalize(var_point[x],x) for x in self.input_headers}
+			var_dat_normal.append([normal_inputs[x] for x in normal_inputs])
 
+		var_dat_normal = np.asarray(var_dat_normal).T
+		output_vars = {x:numpy.asarray([dat_line[x] for dat_line in self.var_dat]).T for x in self.output_headers}
+
+
+		#Build an interpolation model for each output variable
+		self.interp_models = {x:Rbf(*var_dat_normal, output_vars[x]) for x in self.output_headers}
 
 	def make_models_reduced(self,dat_subset):
 		""" Make the interpolation model from a subset of the data"""
@@ -80,29 +87,13 @@ class SVRModel:
 		var_dat_normal = []
 		for var_point in dat_subset:
 			normal_inputs = {x:self.normalize(var_point[x],x) for x in self.input_headers}
-			var_dat_normal.append([normal_inputs[x] for x in self.input_headers])
+			var_dat_normal.append([normal_inputs[x] for x in normal_inputs])
 
-		var_dat_normal = np.asarray(var_dat_normal)
-		output_vars = {x:numpy.asarray([dat_line[x] for dat_line in dat_subset]) for x in self.output_headers}
+		var_dat_normal = np.asarray(var_dat_normal).T
+		output_vars = {x:numpy.asarray([dat_line[x] for dat_line in dat_subset]).T for x in self.output_headers}
 
-		regime_vars = numpy.asarray([dat_line["regime"] for dat_line in dat_subset]) 
-
-
-		self.svr_models = {}
-
-		#Build an SVR model for each output variable at each jetting regime
-		for reg in [1,2]:
-			var_dat_reg = np.asarray([var_dat_normal[i] for i in range(len(var_dat_normal)) if regime_vars[i] == reg])
-			for header in self.output_headers:
-				header_reg = np.asarray([output_vars[header][i] for i in range(len(output_vars[header])) if regime_vars[i] == reg])
-
-				SVR_model = SVR(C=100000,epsilon=0.00001)
-				SVR_model.fit(var_dat_reg,header_reg)
-				self.svr_models[str(reg) + header] = SVR_model 
-
-		self.SVM_model = SVC(C=100000)
-		self.SVM_model.fit(var_dat_normal,regime_vars)
-
+		#Build an interpolation model for each output variable
+		self.interp_models = {x:Rbf(*var_dat_normal, output_vars[x]) for x in self.output_headers}
 
 	def validate_model(self, test_dat):
 		""" Get test accuracies for the model """
@@ -111,108 +102,38 @@ class SVRModel:
 			val_header = []
 			for test_point in test_dat:
 				normal_inputs = {x:self.normalize(test_point[x],x) for x in self.input_headers}
-
-				actual_regime = int(test_point["regime"])
-				pred_reg = int(self.SVM_model.predict(np.asarray([normal_inputs[x] for x in self.input_headers]).reshape(1,-1))[0])
-
 				actual_val = test_point[header]
-				pred_val = self.svr_models[str(pred_reg)+header].predict(np.asarray([normal_inputs[x] for x in self.input_headers]).reshape(1,-1))[0]
-
-				chip_num = int(test_point["chip_number"])
-
-				val_header.append([actual_val,pred_val,abs(pred_val-actual_val),actual_regime,pred_reg,chip_num])
-
+				pred_val = self.interp_models[header](*[normal_inputs[x] for x in normal_inputs])
+				val_header.append([actual_val,pred_val,abs(pred_val-actual_val)])
 			validations[header] = val_header
 		return validations
-		
+
 
 	def cross_validate(self):
 		""" Perform cross-validation check of the data accuracy """
-		folds = len(self.var_dat)
-		
+		folds = 10
+
 		rand_var_dat = random.sample(self.var_dat,len(self.var_dat))
 		groups = [rand_var_dat[x:x+int(len(rand_var_dat)/folds)] for x in range(0,len(rand_var_dat),int(len(rand_var_dat)/folds))]
+		train_dat = [x for x in itertools.chain.from_iterable(groups[0:])]
+		test_dat = groups[0]
+		self.make_models_reduced(train_dat)
 
-		validations = {}
-		for i in range(folds):
-			train_dat = [x for x in itertools.chain.from_iterable(groups[:i] + groups[i+1:])]
-			test_dat = groups[i]
-			self.make_models_reduced(train_dat)
-			fold_validations = self.validate_model(test_dat)
-			for header in fold_validations:
-				if header not in validations:
-					validations[header] = []
-				validations[header].extend(fold_validations[header])
-			
-		
-		self.wrong_regimes = {}
-		self.perc10_wrong_preds = {}
-		for i in range(2):
-			out_var = self.output_headers[i]
-			print(out_var)
-			self.wrong_regimes[out_var] = []
-			self.perc10_wrong_preds[out_var] = []
+		validations = self.validate_model(test_dat)
 
-			grs = sorted(validations[self.output_headers[i]],key = lambda x: x[5])
+		grs = validations[self.output_headers[0]]
+		print(self.output_headers[0])
 
-			total_num = len(grs)
-			set_mean = sum([x[0] for x in grs])/total_num
+		pred_vals = np.asarray([x[0] for x in grs])
+		actual_vals = np.asarray([x[1] for x in grs])
 
-			total_right = 0
-			for x in grs:
-				if int(x[3]) == int(x[4]):
-					total_right+=1
-				else:
-					self.wrong_regimes[out_var].append(x)
-					
+		plt.plot(pred_vals,actual_vals,'o')
 
-			print("SVM Accuracy: " + str(total_right/total_num))
+		reg = LinearRegression().fit(pred_vals.reshape(-1,1),actual_vals.reshape(-1,1))
+		print(reg.score(pred_vals.reshape(-1,1),actual_vals.reshape(-1,1)))
 
-			total_squared_pred_error = 0
-			total_squared_mean_error = 0
-			for x in grs:
-				deviation = abs(x[0]-x[1])
-				total_squared_pred_error += (deviation)**2
-				total_squared_mean_error += (x[1]-set_mean)**2
-				
-				if deviation > x[0]*0.1:
-					self.perc10_wrong_preds[out_var].append(x)
-
-			r2 = 1 - (total_squared_pred_error/total_squared_mean_error)
-			print("SVR R2 (no bias): " + str(r2))
-
-			
-			pred_vals = np.asarray([x[0] for x in grs])
-			actual_vals = np.asarray([x[1] for x in grs])
-			
-			plt.figure()
-			plt.title(self.output_headers[i])
-			plt.plot(pred_vals,actual_vals,'o')
-			
-			reg = LinearRegression().fit(pred_vals.reshape(-1,1),actual_vals.reshape(-1,1))
-			print("SVR R2 (bias): " + str(reg.score(pred_vals.reshape(-1,1),actual_vals.reshape(-1,1))))
-			
-			# Write to disc
-			out_headers = ["actual_val","pred_val","deviation","actual_regime","pred_regime","chip_number"]
-			with open("all_preds_" + out_var + ".csv","w") as f:
-				f.write(",".join(out_headers) + "\n") 
-				for x in grs:
-					f.write(",".join([str(xi) for xi in x]) + "\n")
-
-			with open("bad_regimes_" + out_var + ".csv","w") as f:
-				f.write(",".join(out_headers) + "\n") 
-				for x in self.wrong_regimes[out_var]:
-					f.write(",".join([str(xi) for xi in x]) + "\n")
-
-
-			with open("bad_preds_" + out_var + ".csv","w") as f:
-				f.write(",".join(out_headers) + "\n") 
-				for x in self.perc10_wrong_preds[out_var]:
-					f.write(",".join([str(xi) for xi in x]) + "\n")
-
-
-				
-				
+		for i in range(len(pred_vals)):
+			print(str(pred_vals[i]) + "," + str(actual_vals[i]))
 
 
 		plt.show()
@@ -231,7 +152,7 @@ class SVRModel:
 		Returns 0-1 normalization of value with 0 being the min and 1 being the max
 		"""
 		return (value-self.ranges_dict[inType][0])/(self.ranges_dict[inType][1]-self.ranges_dict[inType][0])
-		
+
 	def denormalize(self,value,inType):
 		"""Return actual of a value of a normalized variable
 		Args:
@@ -259,7 +180,7 @@ class SVRModel:
 		for point in self.var_dat:
 			nval = (sum([self.normalize(abs(point[x]-self.desired_val_dict[x]),x) for x in self.desired_val_dict]) +
 				sum([self.normalize(abs(point[x]-(sum(constraints[x])/2)),x) for x in constraints]))
-			
+
 			if nval < min_val:
 				self.closest_point = point
 				min_val = nval
@@ -303,7 +224,5 @@ class SVRModel:
 		return results
 	
 	
-        
-svrm = SVRModel()
-svrm.cross_validate()
-
+it = InterModel()
+it.cross_validate()

@@ -1,6 +1,7 @@
 """A graphical interface to our interpolation modeller"""
-from InterModel import InterModel
-from ForwardModel import ForwardModel
+from core_logic.ForwardModel import ForwardModel
+from core_logic.InterModel import InterModel
+from helper_scripts.ModelHelper import ModelHelper
 import tkinter
 from tkinter import ttk
 import tkinter.messagebox
@@ -17,9 +18,11 @@ class DAFD_GUI:
 		#Attach the interpolation model to the GUI
 		self.it = InterModel()
 
-		self.ranges_dict = self.it.ranges_dict
-		self.input_headers = self.it.input_headers
-		self.output_headers = self.it.output_headers
+		self.MH = ModelHelper.get_instance() # type: ModelHelper
+
+		self.ranges_dict = self.MH.ranges_dict
+		self.input_headers = self.MH.input_headers
+		self.output_headers = self.MH.output_headers
 
 		#Pack all input constraint elements together
 		inputs_frame = tkinter.Frame(self.root)

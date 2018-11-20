@@ -1,7 +1,7 @@
-from ModelHelper import ModelHelper
-from ForwardModel import ForwardModel
+from core_logic.ForwardModel import ForwardModel
+from helper_scripts.ModelHelper import ModelHelper
 import random
-import itertools
+
 
 class ForwardModelTester:
 	def __init__(self):
@@ -63,5 +63,5 @@ class ForwardModelTester:
 		return ret_val
 
 tester = ForwardModelTester()
-tester.cross_validate(20)
+tester.cross_validate(2)
 
