@@ -1,12 +1,12 @@
-from sklearn.svm import SVR
+from sklearn.neural_network import MLPRegressor
 import numpy as np
 
-class SVRModel:
+class NeuralNetModel:
 
 	regression_model = None
 
 	def __init__(self, features, labels):
-		self.regression_model = SVR(C=100000, epsilon=0.00001)
+		self.regression_model =  MLPRegressor(solver='lbfgs', tol=0.00001, hidden_layer_sizes=(100,100,100,100))
 		self.regression_model.fit(features, labels)
 
 	def predict(self, features):
