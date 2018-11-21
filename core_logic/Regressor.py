@@ -22,7 +22,7 @@ class Regressor:
 		regime_feature_data = [self.MH.train_features_dat[x] for x in regime_indices]
 		regime_label_data = [self.MH.train_labels_dat[output_name][x] for x in regime_indices]
 
-		self.regression_model = LinearModel(regime_feature_data, regime_label_data)
+		self.regression_model = NeuralNetModel(regime_feature_data, regime_label_data)
 
 	def predict(self,features):
 		return self.regression_model.predict(features)
