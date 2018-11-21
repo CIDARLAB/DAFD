@@ -148,8 +148,9 @@ class DAFD_GUI:
 		#Get all the chip geometry values
 		features = {}
 		features = {x: float(self.entries_dict[x].get()) for x in self.input_headers}
+		raw_features = [features[x] for x in self.input_headers]
 		fwd_model = ForwardModel()
-		outs = fwd_model.predict(features)
+		outs = fwd_model.predict(raw_features)
 		self.results_label["text"] = "\n".join([x + " : " + str(outs[x]) for x in outs])
 
 
