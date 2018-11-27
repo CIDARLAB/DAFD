@@ -58,8 +58,10 @@ class InterModel:
 			nval = sum([abs(self.MH.normalize(self.MH.train_labels_dat[x][i], x) - desired_vals[x]) for x in desired_vals])
 
 			feat_point = self.MH.train_features_dat[i]
-			for cname in constraints:
-				nval += abs(feat_point[cname] - ((constraints[cname]-constraints[cname])/2.0))
+			for i in range(len(self.MH.input_headers)):
+				if self.MH.input_headers[i] in 	/constraints:
+					cname = self.MH.input_headers[i]
+					nval += abs(feat_point[i] - (constraints[cname][0] + constraints[cname][1])/2.0)
 
 			if nval < min_val:
 				closest_point = feat_point
@@ -90,8 +92,8 @@ class InterModel:
 
 		norm_constraints = {}
 		for cname in constraints:
-			cons_low = self.MH.normalize(constraints[cname][0])
-			cons_high = self.MH.normalize(constraints[cname][1])
+			cons_low = self.MH.normalize(constraints[cname][0],cname)
+			cons_high = self.MH.normalize(constraints[cname][1],cname)
 			norm_constraints[cname] = (cons_low, cons_high)
 
 		norm_desired_vals = {}

@@ -14,7 +14,7 @@ class ForwardModel:
 
 	When you want to predict outputs,
 		1. Model predicts regime based on inputs
-		2. For each output variable, the model returns a 
+		2. For each output variable, the model returns a
 
 	"""
 

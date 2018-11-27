@@ -18,6 +18,7 @@ class DAFD_GUI:
 
 		#Attach the interpolation model to the GUI
 		self.it = InterModel()
+		self.fw = self.it.fwd_model
 
 		self.MH = ModelHelper.get_instance() # type: ModelHelper
 
@@ -149,8 +150,7 @@ class DAFD_GUI:
 		features = {}
 		features = {x: float(self.entries_dict[x].get()) for x in self.input_headers}
 		raw_features = [features[x] for x in self.input_headers]
-		fwd_model = ForwardModel()
-		outs = fwd_model.predict(raw_features)
+		outs = self.fw.predict(raw_features)
 		self.results_label["text"] = "\n".join([x + " : " + str(outs[x]) for x in outs])
 
 
