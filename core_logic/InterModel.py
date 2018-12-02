@@ -59,7 +59,7 @@ class InterModel:
 
 			feat_point = self.MH.train_features_dat[i]
 			for i in range(len(self.MH.input_headers)):
-				if self.MH.input_headers[i] in 	/constraints:
+				if self.MH.input_headers[i] in 	constraints:
 					cname = self.MH.input_headers[i]
 					nval += abs(feat_point[i] - (constraints[cname][0] + constraints[cname][1])/2.0)
 
