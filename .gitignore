@@ -3,3 +3,4 @@
 *.spec
 *.tree
 /dist
+/model_data
