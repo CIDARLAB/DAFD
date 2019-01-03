@@ -74,7 +74,6 @@ class InterModel:
 		"""
 		prediction = self.fwd_model.predict(x, normalized=True)
 		merrors = [abs(self.MH.normalize(prediction[head], head) - self.norm_desired_vals_global[head]) for head in self.norm_desired_vals_global]
-		print(sum(merrors))
 		return sum(merrors)
 
 
@@ -105,16 +104,16 @@ class InterModel:
 
 		#Get acceptable starting point
 		start_pos = closest_point
-		print(start_pos)
-
+		self.first_val = start_pos
 		#Minimization function
 		res = minimize(self.model_error,
 				start_pos, 
 				method='SLSQP',
 				bounds = tuple([(norm_constraints[x][0],norm_constraints[x][1]) if x in norm_constraints else (0, 1) for x in self.MH.input_headers]))
 
+		self.last_point = [res["x"][i] for i in range(len(res["x"]))]
+
 		#Denormalize results
 		results = {x: self.MH.denormalize(res["x"][i], x) for i, x in enumerate(self.MH.input_headers)}
-		print(results)
 		return results
 
