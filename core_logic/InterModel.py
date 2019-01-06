@@ -105,10 +105,14 @@ class InterModel:
 		#Get acceptable starting point
 		start_pos = closest_point
 		self.first_val = start_pos
+
+		options = {'eps':1e-6}
+
 		#Minimization function
 		res = minimize(self.model_error,
 				start_pos, 
 				method='SLSQP',
+				options=options,
 				bounds = tuple([(norm_constraints[x][0],norm_constraints[x][1]) if x in norm_constraints else (0, 1) for x in self.MH.input_headers]))
 
 		self.last_point = [res["x"][i] for i in range(len(res["x"]))]
