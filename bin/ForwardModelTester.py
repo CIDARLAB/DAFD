@@ -7,6 +7,11 @@ class ForwardModelTester:
 	def __init__(self):
 		self.MH = ModelHelper.get_instance() # type: ModelHelper
 
+	def train(self):
+		data_size = len(self.MH.train_features_dat)
+		self.MH.make_train_data([x for x in range(data_size)])
+		self.forward_model = ForwardModel()
+
 	def cross_validate(self, folds):
 		data_size = len(self.MH.train_features_dat)
 
@@ -63,5 +68,6 @@ class ForwardModelTester:
 		return ret_val
 
 tester = ForwardModelTester()
-tester.cross_validate(2)
+#tester.cross_validate(2)
+tester.train()
 

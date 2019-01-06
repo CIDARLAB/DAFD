@@ -13,6 +13,7 @@ from sklearn import model_selection
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from keras.callbacks import EarlyStopping
+from keras.models import model_from_json
 from keras.utils import plot_model
 #from keras.utils.vis_utils import plot_model
 import sys
@@ -51,7 +52,10 @@ class NeuralNetModel_keras:
 
 	regression_model = None
 
-	def __init__(self, features, labels):
+	def train_model(self, output_name, regime, features, labels):
+		model_name = output_name + str(regime)
+		print(model_name)
+
 		# Initialising the ANN
 		self.regression_model = Sequential()
 
@@ -73,12 +77,33 @@ class NeuralNetModel_keras:
 		# Compiling the NN
 		self.regression_model.compile(optimizer = 'nadam', loss = 'mean_squared_error',metrics=['mean_squared_error', rmse, r_square] )#metrics=[metrics.mae, metrics.categorical_accuracy]
 
-		earlystopping=EarlyStopping(monitor="mean_squared_error", patience=20, verbose=1, mode='auto')
+		earlystopping=EarlyStopping(monitor="mean_squared_error", patience=20, verbose=0, mode='auto')
 
 		# Fitting the NN to the Training set
 		train_features = np.stack(features)
 		train_labels = np.stack(labels)
+
+		print(train_labels.shape)
+
 		self.regression_model.fit(train_features, train_labels, batch_size = 10, epochs = 500, callbacks=[earlystopping])#
+
+		# serialize model to JSON
+		model_json = self.regression_model.to_json()
+		with open("models/forward_models/saved/" + model_name + ".json", "w") as json_file:
+			json_file.write(model_json)
+		# serialize weights to HDF5
+		self.regression_model.save_weights("models/forward_models/saved/" + model_name + ".h5")
+
+	def load_model(self, output_name, regime):
+		model_name = output_name + str(regime)
+
+		# load json and create model
+		json_file = open("models/forward_models/saved/" + model_name + ".json", 'r')
+		loaded_model_json = json_file.read()
+		json_file.close()
+		loaded_model = model_from_json(loaded_model_json)
+		# load weights into new model
+		loaded_model.load_weights("models/forward_models/saved/" + model_name + ".h5")
 
 	def predict(self, features):
 		return self.regression_model.predict(np.asarray(features).reshape(1, -1))[0]

@@ -150,7 +150,7 @@ class ModelHelper:
 			self.train_features_dat.append(normal_features)
 			for header in self.output_headers:
 				self.train_labels_dat[header].append(self.all_dat[i][header])
-			regime_label = self.all_dat[i]["regime"]
+			regime_label = int(self.all_dat[i]["regime"])
 			self.train_regime_dat.append(regime_label)
 			if regime_label not in self.regime_indices:
 				self.regime_indices[regime_label] = []
