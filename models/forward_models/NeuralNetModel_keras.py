@@ -19,6 +19,7 @@ from keras.utils import plot_model
 import sys
 from sklearn.neural_network import MLPRegressor
 import numpy as np
+import os
 
 
 # root mean squared error (rmse) for regression
@@ -89,21 +90,22 @@ class NeuralNetModel_keras:
 
 		# serialize model to JSON
 		model_json = self.regression_model.to_json()
-		with open("models/forward_models/saved/" + model_name + ".json", "w") as json_file:
+		with open(os.path.dirname(os.path.abspath(__file__)) + "/saved/" + model_name + ".json", "w") as json_file:
 			json_file.write(model_json)
 		# serialize weights to HDF5
-		self.regression_model.save_weights("models/forward_models/saved/" + model_name + ".h5")
+		self.regression_model.save_weights(os.path.dirname(os.path.abspath(__file__)) + "/saved/" + model_name + ".h5")
 
 	def load_model(self, output_name, regime):
 		model_name = output_name + str(regime)
 
 		# load json and create model
-		json_file = open("models/forward_models/saved/" + model_name + ".json", 'r')
+		json_file = open(os.path.dirname(os.path.abspath(__file__)) + "/saved/" + model_name + ".json", 'r')
 		loaded_model_json = json_file.read()
 		json_file.close()
 		loaded_model = model_from_json(loaded_model_json)
 		# load weights into new model
-		loaded_model.load_weights("models/forward_models/saved/" + model_name + ".h5")
+		loaded_model.load_weights(os.path.dirname(os.path.abspath(__file__)) + "/saved/" + model_name + ".h5")
+		self.regression_model = loaded_model
 
 	def predict(self, features):
 		return self.regression_model.predict(np.asarray(features).reshape(1, -1))[0]
