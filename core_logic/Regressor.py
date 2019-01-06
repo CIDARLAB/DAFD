@@ -8,7 +8,7 @@ from models.forward_models.NeuralNetModel import NeuralNetModel
 from models.forward_models.NeuralNetModel_keras import NeuralNetModel_keras
 from helper_scripts.ModelHelper import ModelHelper
 
-load_model = False	# Load the file from disk
+load_model = True	# Load the file from disk
 
 class Regressor:
 	"""
@@ -26,9 +26,11 @@ class Regressor:
 
 		#self.regression_model = NeuralNetModel(regime_feature_data, regime_label_data)
 		if load_model:
-			self.regression_model = NeuralNetModel_keras().load_model(output_name, regime)
+			self.regression_model = NeuralNetModel_keras()
+			self.regression_model.load_model(output_name, regime)
 		else:
-			self.regression_model = NeuralNetModel_keras().train_model(output_name, regime, regime_feature_data, regime_label_data)
+			self.regression_model = NeuralNetModel_keras()
+			self.regression_model.train_model(output_name, regime, regime_feature_data, regime_label_data)
 
 	def predict(self,features):
 		return self.regression_model.predict(features)
