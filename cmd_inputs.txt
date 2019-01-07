@@ -1,0 +1,7 @@
+CONSTRAINTS
+orifice_size=100:100
+aspect_ratio=1.2:1.4
+normalized_water_inlet=12:12
+DESIRED_VALS
+generation_rate=120
+droplet_size=140

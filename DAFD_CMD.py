@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import sys
 import os
 from bin.DAFD_Interface import DAFD_Interface
@@ -43,7 +45,6 @@ if stage == 2:
 	results = di.runForward(features)
 else:
 	results = di.runInterp(desired_vals, constraints)
-print(results)
-print(constraints)
+print("results="+str(results))
 new_results = di.runForward(results)
-print(new_results)
+print("forward_model="+str(new_results))
