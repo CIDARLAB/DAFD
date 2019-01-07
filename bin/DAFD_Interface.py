@@ -3,9 +3,6 @@ from core_logic.ForwardModel import ForwardModel
 from core_logic.InterModel import InterModel
 from helper_scripts.ModelHelper import ModelHelper
 
-import rpyc
-from rpyc.utils.server import ThreadedServer
-from threading import Thread
 
 class DAFD_Interface:
 	"""A class that provides an interface for DAFD"""
