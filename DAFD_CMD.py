@@ -45,6 +45,10 @@ if stage == 2:
 	results = di.runForward(features)
 else:
 	results = di.runInterp(desired_vals, constraints)
-print("results="+str(results))
+
+result_str = ""
+for x in di.MH.get_instance().input_headers:
+	result_str += str(results[x]) + "|"
+print(result_str)
 new_results = di.runForward(results)
 print("forward_model="+str(new_results))
