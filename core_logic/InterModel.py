@@ -54,18 +54,20 @@ class InterModel:
 
 		closest_point = {}
 		min_val = float("inf")
+		match_index = -1
 		for i in range(self.MH.train_data_size):
 			nval = sum([abs(self.MH.normalize(self.MH.train_labels_dat[x][i], x) - desired_vals[x]) for x in desired_vals])
 
 			feat_point = self.MH.train_features_dat[i]
-			for i in range(len(self.MH.input_headers)):
-				if self.MH.input_headers[i] in 	constraints:
-					cname = self.MH.input_headers[i]
-					nval += abs(feat_point[i] - (constraints[cname][0] + constraints[cname][1])/2.0)
+			for j in range(len(self.MH.input_headers)):
+				if self.MH.input_headers[j] in 	constraints:
+					cname = self.MH.input_headers[j]
+					nval += abs(feat_point[j] - (constraints[cname][0] + constraints[cname][1])/2.0)
 
 			if nval < min_val:
 				closest_point = feat_point
 				min_val = nval
+				match_index = i
 		return closest_point
 
 	def model_error(self, x):
