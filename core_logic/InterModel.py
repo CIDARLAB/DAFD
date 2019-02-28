@@ -93,6 +93,7 @@ class InterModel:
 		"""
 		prediction = self.fwd_model.predict(x, normalized=True)
 		merrors = [abs(self.MH.normalize(prediction[head], head) - self.norm_desired_vals_global[head]) for head in self.norm_desired_vals_global]
+		#merrors_dist = [abs(x[i] - self.first_point[i]) for i in range(len(x))]
 		return sum(merrors)
 
 
@@ -123,7 +124,8 @@ class InterModel:
 
 		#Get acceptable starting point
 		start_pos = closest_point
-		self.first_val = start_pos
+		self.first_point = start_pos
+
 
 		options = {'eps':1e-6}
 
@@ -138,5 +140,13 @@ class InterModel:
 
 		#Denormalize results
 		results = {x: self.MH.denormalize(res["x"][i], x) for i, x in enumerate(self.MH.input_headers)}
+		print(results)
+		print(self.MH.input_headers)
+		preds = self.fwd_model.predict([results[x] for x in self.MH.input_headers])
+		out_str = ""
+		out_str += ",".join([str(results[x]) for x in self.MH.input_headers]) + ","
+		out_str+=str(preds["generation_rate"][0])+","
+		out_str+=str(preds["droplet_size"][0])
+		print(out_str)
 		return results
 
