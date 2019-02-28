@@ -89,10 +89,7 @@ for($i=0; $i<sizeof($desired_vals); $i++)
 
 
 $outputs = shell_exec($DAFD_location . "venv/bin/python3 " . $DAFD_location . "DAFD_CMD.py");
-$reverse_outs = explode("FWD",$outputs)[0];
-$rev_outs = explode("|",$reverse_outs);
-$forward_outs = explode("FWD",$outputs)[1];
-$fwd_outs = explode("|",$forward_outs);
+$arr_outs = explode("|",explode("BEGIN:",$outputs)[1]);
 ?>
 
 <div>
@@ -100,51 +97,78 @@ $fwd_outs = explode("|",$forward_outs);
 
     Orifice Size:
     <?php
-    echo $rev_outs[0];
+    echo $arr_outs[0];
     ?>
     <br>
 
     Aspect Ratio:
     <?php
-    echo $rev_outs[1];
+    echo $arr_outs[1];
     ?>
     <br>
 
     Expansion Ratio:
     <?php
-    echo $rev_outs[2];
+    echo $arr_outs[2];
     ?>
     <br>
 
     Normalized Orifice Length:
     <?php
-    echo $rev_outs[3];
+    echo $arr_outs[3];
     ?>
     <br>
 
     Normalized Water Inlet:
     <?php
-    echo $rev_outs[4];
+    echo $arr_outs[4];
     ?>
     <br>
 
     Normalized Oil Inlet:
     <?php
-    echo $rev_outs[5];
+    echo $arr_outs[5];
     ?>
     <br>
 
     Flow Rate Ratio:
     <?php
-    echo $rev_outs[6];
+    echo $arr_outs[6];
     ?>
     <br>
 
     Capillary Number:
     <?php
-    echo $rev_outs[7];
+    echo $arr_outs[7];
     ?>
     <br>
+
+</div>
+
+<br>
+<br>
+
+<div>
+    <h1>Forward Model</h1>
+
+    Generation Rate:
+    <?php
+    echo $arr_outs[8];
+    ?>
+    <br>
+
+    Droplet Size:
+    <?php
+    echo $arr_outs[9];
+    ?>
+    <br>
+
+    Regime:
+    <?php
+    echo $arr_outs[10];
+    ?>
+    <br>
+
 
 </div>
 

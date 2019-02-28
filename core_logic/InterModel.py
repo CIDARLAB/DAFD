@@ -82,8 +82,8 @@ class InterModel:
 		out_str+=",".join([str(start_pos_denorm[x]) for x in self.MH.input_headers]) + ","
 		out_str+=str(self.MH.train_labels_dat["generation_rate"][match_index])+","
 		out_str+=str(self.MH.train_labels_dat["droplet_size"][match_index])+","
-		out_str+=str(pred["generation_rate"][0])+","
-		out_str+=str(pred["droplet_size"][0])
+		out_str+=str(pred["generation_rate"])+","
+		out_str+=str(pred["droplet_size"])
 		print(out_str)
 		return closest_point
 
@@ -145,8 +145,8 @@ class InterModel:
 		preds = self.fwd_model.predict([results[x] for x in self.MH.input_headers])
 		out_str = ""
 		out_str += ",".join([str(results[x]) for x in self.MH.input_headers]) + ","
-		out_str+=str(preds["generation_rate"][0])+","
-		out_str+=str(preds["droplet_size"][0])
+		out_str+=str(preds["generation_rate"])+","
+		out_str+=str(preds["droplet_size"])
 		print(out_str)
 		return results
 

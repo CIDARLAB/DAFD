@@ -41,14 +41,20 @@ with open(os.path.dirname(os.path.abspath(__file__)) + "/" + "cmd_inputs.txt","r
 			features[param_name] = param_val
 
 
-if stage == 2:
-	results = di.runForward(features)
-else:
-	results = di.runInterp(desired_vals, constraints)
+rev_results = di.runInterp(desired_vals, constraints)
+fwd_results = di.runForward(rev_results)
 
-result_str = ""
+print(rev_results)
+print(fwd_results)
+
+
+result_str = "BEGIN:"
 for x in di.MH.get_instance().input_headers:
-	result_str += str(results[x]) + "|"
+	result_str += str(rev_results[x]) + "|"
+
+for x in di.MH.get_instance().output_headers:
+	result_str += str(fwd_results[x]) + "|"
+result_str += str(fwd_results["regime"]) + "|"
+
+
 print(result_str)
-new_results = di.runForward(results)
-print("forward_model="+str(new_results))

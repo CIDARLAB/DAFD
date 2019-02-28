@@ -39,7 +39,7 @@ class ForwardModel:
 		regime = self.regime_classifier.predict(norm_features)
 		ret_dict["regime"] = regime
 		for header in self.MH.output_headers:
-			ret_dict[header] = self.model_dict[header+str(regime)].predict(norm_features)
+			ret_dict[header] = self.model_dict[header+str(regime)].predict(norm_features)[0]
 		return ret_dict
 
 
