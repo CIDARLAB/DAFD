@@ -40,21 +40,30 @@ with open(os.path.dirname(os.path.abspath(__file__)) + "/" + "cmd_inputs.txt","r
 			param_val = float(line.split("=")[1])
 			features[param_name] = param_val
 
+if stage == 2:
+	fwd_results = di.runForward(features)
 
-rev_results = di.runInterp(desired_vals, constraints)
-fwd_results = di.runForward(rev_results)
+	result_str = "BEGIN:"
 
-print(rev_results)
-print(fwd_results)
+	for x in di.MH.get_instance().output_headers:
+		result_str += str(fwd_results[x]) + "|"
+	result_str += str(fwd_results["regime"]) + "|"
+	print(result_str)
+
+else:
+	rev_results = di.runInterp(desired_vals, constraints)
+	fwd_results = di.runForward(rev_results)
+
+	print(rev_results)
+	print(fwd_results)
 
 
-result_str = "BEGIN:"
-for x in di.MH.get_instance().input_headers:
-	result_str += str(rev_results[x]) + "|"
+	result_str = "BEGIN:"
+	for x in di.MH.get_instance().input_headers:
+		result_str += str(rev_results[x]) + "|"
 
-for x in di.MH.get_instance().output_headers:
-	result_str += str(fwd_results[x]) + "|"
-result_str += str(fwd_results["regime"]) + "|"
+	for x in di.MH.get_instance().output_headers:
+		result_str += str(fwd_results[x]) + "|"
+	result_str += str(fwd_results["regime"]) + "|"
 
-
-print(result_str)
+	print(result_str)
