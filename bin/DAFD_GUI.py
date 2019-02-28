@@ -116,11 +116,10 @@ class DAFD_GUI:
 					wanted_constraint = (float(param_entry),float(param_entry))
 
 				if wanted_constraint[0] <= self.di.ranges_dict[param_name][0]:
-					tkinter.messagebox.showwarning("Out of range constraint",param_name + " was too low. Constraint ignored")
+					tkinter.messagebox.showwarning("Out of range constraint",param_name + " was too low.")
 				elif wanted_constraint[1] >= self.di.ranges_dict[param_name][1]:
-					tkinter.messagebox.showwarning("Out of range constraint",param_name + " was too high. Constraint ignored")
-				else:
-					constraints[param_name] = wanted_constraint
+					tkinter.messagebox.showwarning("Out of range constraint",param_name + " was too high.")
+				constraints[param_name] = wanted_constraint
 
 		# Get the desired outputs
 		# Note one can be left blank, in which case the interpolation model will simply operate on the other value's model
@@ -132,7 +131,8 @@ class DAFD_GUI:
 				if wanted_val >= self.di.ranges_dict[param_name][0] and wanted_val <= self.di.ranges_dict[param_name][1]:
 					desired_vals[param_name] = wanted_val
 				else:
-					tkinter.messagebox.showwarning("Out of range desired value", param_name + " was out of range. Value was ignored")
+					tkinter.messagebox.showwarning("Out of range desired value", param_name + " was out of range.")
+					desired_vals[param_name] = wanted_val
 
 		#Return and display the results
 		results = self.di.runInterp(desired_vals,constraints)
