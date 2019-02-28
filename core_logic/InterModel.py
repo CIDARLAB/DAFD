@@ -68,6 +68,23 @@ class InterModel:
 				closest_point = feat_point
 				min_val = nval
 				match_index = i
+
+		print("Start point")
+		print(match_index)
+		start_pos_denorm = {x: self.MH.denormalize(closest_point[i], x) for i, x in enumerate(self.MH.input_headers)}
+		print([start_pos_denorm[x] for x in self.MH.input_headers])
+		pred=self.fwd_model.predict(closest_point, normalized=True)
+		print(pred)
+		start_val_denorm = {x: self.MH.train_labels_dat[x][match_index] for i, x in enumerate(self.MH.output_headers)}
+		print(start_val_denorm)
+		out_str = ""
+		out_str+=str(match_index+1) + ","
+		out_str+=",".join([str(start_pos_denorm[x]) for x in self.MH.input_headers]) + ","
+		out_str+=str(self.MH.train_labels_dat["generation_rate"][match_index])+","
+		out_str+=str(self.MH.train_labels_dat["droplet_size"][match_index])+","
+		out_str+=str(pred["generation_rate"][0])+","
+		out_str+=str(pred["droplet_size"][0])
+		print(out_str)
 		return closest_point
 
 	def model_error(self, x):
