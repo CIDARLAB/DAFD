@@ -52,10 +52,20 @@ class InterModel:
 			Therefore, this class should be the baseline level of accuracy for DAFD.
 		"""
 
+		print(constraints)
+		print(desired_vals)
+		use_regime_2 = False
+		if "orifice_size" in constraints and self.MH.denormalize(constraints["orifice_size"][1],"orifice_size") < self.MH.denormalize(desired_vals["droplet_size"],"droplet_size"):
+			use_regime_2 = True
+		print(use_regime_2)
+
 		closest_point = {}
 		min_val = float("inf")
 		match_index = -1
 		for i in range(self.MH.train_data_size):
+			if use_regime_2 and self.MH.train_regime_dat[i] != 2:
+				continue
+
 			nval = sum([abs(self.MH.normalize(self.MH.train_labels_dat[x][i], x) - desired_vals[x]) for x in desired_vals])
 
 			feat_point = self.MH.train_features_dat[i]
