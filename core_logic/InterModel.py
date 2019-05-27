@@ -123,6 +123,16 @@ class InterModel:
 		print("Start pred")
 		print(prediction)
 
+		#Adjust target to match forward model error (gradient method)
+		#prediction = self.fwd_model.predict(start_pos, normalized=True)
+		#self.norm_desired_vals_global_adjusted = {}
+		#for head in norm_desired_vals:
+		#	diff = self.MH.normalize(prediction[head],head) - self.MH.normalize(closest_labels[head],head)
+		#	self.norm_desired_vals_global_adjusted[head] = norm_desired_vals[head] + diff
+
+
+
+
 		options = {'eps':1e-6}
 
 		#Minimization function
