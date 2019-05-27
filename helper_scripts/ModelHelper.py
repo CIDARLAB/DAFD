@@ -1,12 +1,7 @@
 import os
 import csv
-import sys
-
-
-
-
-
-
+import sklearn
+import numpy as np
 
 
 class ModelHelper:
@@ -15,7 +10,7 @@ class ModelHelper:
 	Singleton
 	"""
 
-	RESOURCE_PATH = "experimental_data/ExperimentalResults.csv"		# Experimental data location
+	RESOURCE_PATH = "experimental_data/ExperimentalResults_880.csv"		# Experimental data location
 	NUM_OUTPUTS = 2													# Droplet Generation Rate + Droplet Size
 
 	instance = None				# Singleton
@@ -27,7 +22,9 @@ class ModelHelper:
 	train_labels_dat = {}		# Normalized and reduced labels from all_dat
 	train_regime_dat = []		# Regime labels from all_dat
 	regime_indices = {}			# Indices of the TRAIN DATA (not the all_dat) that belong to each regime
-	ranges_dict = {}			# Dictionary of ranges for each ranges variable
+	ranges_dict = {} 			# Dictionary of ranges for each ranges variable
+	ranges_dict_normalized = {} 			# Dictionary of ranges for each ranges variable
+	transform_dict = {}			# Dictionary of sklearn transform objects for normalization
 
 	def __init__(self):
 		if ModelHelper.instance is None:
@@ -82,7 +79,11 @@ class ModelHelper:
 
 		# Find the min and max to each data type
 		for head in headers:
+			self.transform_dict[head] = sklearn.preprocessing.StandardScaler()
+			self.transform_dict[head].fit(np.array(values_dict[head]).reshape(-1,1))
 			self.ranges_dict[head] = (min(values_dict[head]), max(values_dict[head]))
+			self.ranges_dict_normalized[head] = (self.transform_dict[head].transform([[min(values_dict[head])]])[0][0],
+									  self.transform_dict[head].transform([[max(values_dict[head])]])[0][0])
 
 	def normalize_set(self, values):
 		""" Normalizes a set of features
@@ -118,7 +119,7 @@ class ModelHelper:
 
 		Returns 0-1 normalization of value with 0 being the min and 1 being the max
 		"""
-		return (value - self.ranges_dict[inType][0]) / (self.ranges_dict[inType][1] - self.ranges_dict[inType][0])
+		return self.transform_dict[inType].transform([[value]])[0][0]
 
 
 	def denormalize(self, value, inType):
@@ -129,7 +130,7 @@ class ModelHelper:
 
 		Returns actual value of given 0-1 normalized value
 		"""
-		return value * (self.ranges_dict[inType][1] - self.ranges_dict[inType][0]) + self.ranges_dict[inType][0]
+		return self.transform_dict[inType].inverse_transform([[value]])[0][0]
 
 	def make_train_data(self, indices=-1):
 		""" Make training data from test data
@@ -159,3 +160,24 @@ class ModelHelper:
 		self.train_data_size = len(self.train_features_dat)
 
 
+	def make_test_data(self, indices=-1):
+		""" Make training data from test data
+			Indices are a list of wanted data (-1 indicates use all data)
+		"""
+
+		if indices == -1:
+			indices = [x for x in range(len(self.all_dat))]
+
+		self.test_features_dat = []
+		self.test_labels_dat = {}
+		self.test_regime_dat = []
+		for header in self.output_headers:
+			self.test_labels_dat[header] = []
+
+		for i in indices:
+			normal_features = [self.normalize(self.all_dat[i][x], x) for x in self.input_headers]
+			regime_label = int(self.all_dat[i]["regime"])
+			self.test_regime_dat.append(regime_label)
+			self.test_features_dat.append(normal_features)
+			for header in self.output_headers:
+				self.test_labels_dat[header].append(self.all_dat[i][header])
