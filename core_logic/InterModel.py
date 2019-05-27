@@ -55,7 +55,6 @@ class InterModel:
 		use_regime_2 = False
 		if "orifice_size" in constraints and self.MH.denormalize(constraints["orifice_size"][1],"orifice_size") < self.MH.denormalize(desired_vals["droplet_size"],"droplet_size"):
 			use_regime_2 = True
-		print(use_regime_2)
 
 		closest_point = {}
 		min_val = float("inf")
@@ -77,26 +76,15 @@ class InterModel:
 				min_val = nval
 				match_index = i
 
-		start_pos_denorm = {x: self.MH.denormalize(closest_point[i], x) for i, x in enumerate(self.MH.input_headers)}
-		pred=self.fwd_model.predict(closest_point, normalized=True)
-		start_val_denorm = {x: self.MH.train_labels_dat[x][match_index] for i, x in enumerate(self.MH.output_headers)}
-		out_str = ""
-		out_str+=str(match_index+1) + ","
-		out_str+=",".join([str(start_pos_denorm[x]) for x in self.MH.input_headers]) + ","
-		out_str+=str(self.MH.train_labels_dat["generation_rate"][match_index])+","
-		out_str+=str(self.MH.train_labels_dat["droplet_size"][match_index])+","
-		out_str+=str(pred["generation_rate"])+","
-		out_str+=str(pred["droplet_size"])
-		print(out_str)
-		return closest_point
+		return closest_point, match_index
 
 	def model_error(self, x):
 		"""Returns how far each solution mapped on the model deviates from the desired value
 		Used in our minimization function
 		"""
 		prediction = self.fwd_model.predict(x, normalized=True)
+		#merrors = [abs(self.MH.normalize(prediction[head], head) - self.norm_desired_vals_global_adjusted[head]) for head in self.norm_desired_vals_global_adjusted]
 		merrors = [abs(self.MH.normalize(prediction[head], head) - self.norm_desired_vals_global[head]) for head in self.norm_desired_vals_global]
-		#merrors_dist = [abs(x[i] - self.first_point[i]) for i in range(len(x))]
 		return sum(merrors)
 
 
@@ -123,10 +111,12 @@ class InterModel:
 			norm_desired_vals[lname] = self.MH.normalize(desired_val_dict[lname], lname)
 
 		self.norm_desired_vals_global = norm_desired_vals
-		closest_point = self.get_closest_point(norm_desired_vals, norm_constraints)
+		start_pos, closest_index = self.get_closest_point(norm_desired_vals, norm_constraints)
+		closest_labels = {}
+		for head in self.MH.output_headers:
+			closest_labels[head] = self.MH.train_labels_dat[head][closest_index]
 
 		#Get acceptable starting point
-		start_pos = closest_point
 		self.first_point = start_pos
 
 		prediction = self.fwd_model.predict(start_pos, normalized=True)
@@ -134,7 +124,6 @@ class InterModel:
 		print(prediction)
 
 		options = {'eps':1e-6}
-		print(self.MH.ranges_dict_normalized)
 
 		#Minimization function
 		res = minimize(self.model_error,
