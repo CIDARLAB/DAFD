@@ -52,8 +52,6 @@ class InterModel:
 			Therefore, this class should be the baseline level of accuracy for DAFD.
 		"""
 
-		print(constraints)
-		print(desired_vals)
 		use_regime_2 = False
 		if "orifice_size" in constraints and self.MH.denormalize(constraints["orifice_size"][1],"orifice_size") < self.MH.denormalize(desired_vals["droplet_size"],"droplet_size"):
 			use_regime_2 = True
@@ -79,14 +77,9 @@ class InterModel:
 				min_val = nval
 				match_index = i
 
-		print("Start point")
-		print(match_index)
 		start_pos_denorm = {x: self.MH.denormalize(closest_point[i], x) for i, x in enumerate(self.MH.input_headers)}
-		print([start_pos_denorm[x] for x in self.MH.input_headers])
 		pred=self.fwd_model.predict(closest_point, normalized=True)
-		print(pred)
 		start_val_denorm = {x: self.MH.train_labels_dat[x][match_index] for i, x in enumerate(self.MH.output_headers)}
-		print(start_val_denorm)
 		out_str = ""
 		out_str+=str(match_index+1) + ","
 		out_str+=",".join([str(start_pos_denorm[x]) for x in self.MH.input_headers]) + ","
@@ -136,8 +129,12 @@ class InterModel:
 		start_pos = closest_point
 		self.first_point = start_pos
 
+		prediction = self.fwd_model.predict(start_pos, normalized=True)
+		print("Start pred")
+		print(prediction)
 
 		options = {'eps':1e-6}
+		print(self.MH.ranges_dict_normalized)
 
 		#Minimization function
 		res = minimize(self.model_error,
@@ -153,13 +150,7 @@ class InterModel:
 
 		#Denormalize results
 		results = {x: self.MH.denormalize(res["x"][i], x) for i, x in enumerate(self.MH.input_headers)}
-		print(results)
-		print(self.MH.input_headers)
-		preds = self.fwd_model.predict([results[x] for x in self.MH.input_headers])
-		out_str = ""
-		out_str += ",".join([str(results[x]) for x in self.MH.input_headers]) + ","
-		out_str+=str(preds["generation_rate"])+","
-		out_str+=str(preds["droplet_size"])
-		print(out_str)
+		prediction = self.fwd_model.predict([results[x] for x in self.MH.input_headers])
+		print(prediction)
 		return results
 
