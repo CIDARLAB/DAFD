@@ -144,7 +144,10 @@ class InterModel:
 				start_pos, 
 				method='SLSQP',
 				options=options,
-				bounds = tuple([(norm_constraints[x][0],norm_constraints[x][1]) if x in norm_constraints else (0, 1) for x in self.MH.input_headers]))
+				bounds = tuple([(norm_constraints[x][0],norm_constraints[x][1])
+								if x in norm_constraints
+								else (self.MH.ranges_dict_normalized[x][0],self.MH.ranges_dict_normalized[x][1])
+								for x in self.MH.input_headers]))
 
 		self.last_point = [res["x"][i] for i in range(len(res["x"]))]
 
