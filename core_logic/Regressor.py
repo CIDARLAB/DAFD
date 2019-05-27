@@ -6,7 +6,13 @@ from models.forward_models.RandomForestModel import RandomForestModel
 from models.forward_models.LinearModel import LinearModel
 from models.forward_models.NeuralNetModel import NeuralNetModel
 from models.forward_models.NeuralNetModel_keras import NeuralNetModel_keras
+from models.forward_models.NeuralNetModel_rate1 import NeuralNetModel_rate1
+from models.forward_models.NeuralNetModel_rate2 import NeuralNetModel_rate2
+from models.forward_models.NeuralNetModel_size1 import NeuralNetModel_size1
+from models.forward_models.NeuralNetModel_size2 import NeuralNetModel_size2
 from helper_scripts.ModelHelper import ModelHelper
+import numpy as np
+import sklearn.metrics
 
 load_model = True	# Load the file from disk
 
@@ -24,13 +30,32 @@ class Regressor:
 		regime_feature_data = [self.MH.train_features_dat[x] for x in regime_indices]
 		regime_label_data = [self.MH.train_labels_dat[output_name][x] for x in regime_indices]
 
-		#self.regression_model = NeuralNetModel(regime_feature_data, regime_label_data)
+		print("Regression model " + output_name + str(regime))
+		if output_name == "generation_rate":
+			if regime == 1:
+				self.regression_model = NeuralNetModel_rate1()
+			elif regime == 2:
+				self.regression_model = NeuralNetModel_rate2()
+		elif output_name == "droplet_size":
+			if regime == 1:
+				self.regression_model = NeuralNetModel_size1()
+			elif regime == 2:
+				self.regression_model = NeuralNetModel_size2()
+
 		if load_model:
-			self.regression_model = NeuralNetModel_keras()
+			print("Loading Regressor")
 			self.regression_model.load_model(output_name, regime)
 		else:
-			self.regression_model = NeuralNetModel_keras()
+			print("Training Regressor")
+			print("All data points: " + str(len(self.MH.train_features_dat)))
+			print("Train points: " + str(len(regime_indices)))
 			self.regression_model.train_model(output_name, regime, regime_feature_data, regime_label_data)
+
+		train_features = np.stack(regime_feature_data)
+		train_labels = np.stack(regime_label_data)
+		print("R square (R^2) for Train:                 %f" % sklearn.metrics.r2_score(train_labels, self.regression_model.regression_model.predict(train_features)))
+		print()
+
 
 	def predict(self,features):
 		return self.regression_model.predict(features)
