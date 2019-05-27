@@ -21,25 +21,28 @@ class ForwardModel:
 	regime_classifier = None
 	regressor = None
 
-	def __init__(self):
+	def __init__(self,should_generate_regime_classifier=True):
 		self.MH = ModelHelper.get_instance() # type: ModelHelper
-		self.regime_classifier = RegimeClassifier()
+		if should_generate_regime_classifier:
+			self.regime_classifier = RegimeClassifier()
 		self.model_dict = {}
 		for regime in self.MH.regime_indices:
 			for header in self.MH.output_headers:
 				self.model_dict[header+str(regime)] = Regressor(header, regime)
 
 
-	def predict(self, features, normalized = False):
+	def predict(self, features, normalized = False, regime=0):
+		# regime is an optional parameter that tells the prediction to override the regime prediction
 		ret_dict = {}
 		if normalized:
 			norm_features = features
 		else:
 			norm_features = self.MH.normalize_set(features)
-		regime = self.regime_classifier.predict(norm_features)
+		if regime == 0:
+			regime = self.regime_classifier.predict(norm_features)
 		ret_dict["regime"] = regime
 		for header in self.MH.output_headers:
-			ret_dict[header] = self.model_dict[header+str(regime)].predict(norm_features)[0]
+			ret_dict[header] = self.model_dict[header+str(int(regime))].predict(norm_features)[0]
 		return ret_dict
 
 
