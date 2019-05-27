@@ -23,7 +23,7 @@ def disp_graphs(csv_file):
 		if int(x[4]) == int(x[5]):
 			total_right+=1
 
-	print("SVM Accuracy: " + str(total_right/total_num))
+	print("Classifier Accuracy: " + str(total_right/total_num))
 
 	total_squared_pred_error = 0
 	total_squared_mean_error = 0
@@ -34,14 +34,14 @@ def disp_graphs(csv_file):
 
 
 	r2 = 1 - (total_squared_pred_error/total_squared_mean_error)
-	print("SVR R2 (no bias): " + str(r2))
+	print("Regressor R2 (no bias): " + str(r2))
 
 
 	pred_vals = np.asarray([x[0] for x in grs])
 	actual_vals = np.asarray([x[1] for x in grs])
 
 	reg = LinearRegression().fit(pred_vals.reshape(-1,1),actual_vals.reshape(-1,1))
-	print("SVR R2 (bias): " + str(reg.score(pred_vals.reshape(-1,1),actual_vals.reshape(-1,1))))
+	print("Regressor R2 (bias): " + str(reg.score(pred_vals.reshape(-1,1),actual_vals.reshape(-1,1))))
 
 	deviation_mean = sum([x[2] for x in grs])/total_num
 	deviation_median = sorted(grs, key = lambda x: x[2])[total_num//2][2]
@@ -63,4 +63,4 @@ if __name__ == "__main__":
 	for csv_file in csv_files:
 		disp_graphs(csv_file)
 		print()
-	plt.show()
+	#plt.show()
