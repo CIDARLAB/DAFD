@@ -149,7 +149,7 @@ $arr_outs = explode("|",explode("BEGIN:",$outputs)[1]);
 <br>
 
 <div>
-    <h1>Forward Model</h1>
+    <h1>Predicted Outputs</h1>
 
     Generation Rate:
     <?php
@@ -169,7 +169,32 @@ $arr_outs = explode("|",explode("BEGIN:",$outputs)[1]);
     ?>
     <br>
 
+</div>
 
+<br>
+<br>
+
+<div>
+    <h1>Calculated Values</h1>
+
+
+    Oil Flow Rate (ml/hr):
+    <?php
+    echo $arr_outs[11];
+    ?>
+    <br>
+
+    Water Flow Rate (ul/min):
+    <?php
+    echo $arr_outs[12];
+    ?>
+    <br>
+
+    Droplet Inferred Size:
+    <?php
+    echo $arr_outs[13];
+    ?>
+    <br>
 </div>
 
 </body>

@@ -181,3 +181,40 @@ class ModelHelper:
 			self.test_features_dat.append(normal_features)
 			for header in self.output_headers:
 				self.test_labels_dat[header].append(self.all_dat[i][header])
+
+	def calculate_formulaic_relations(self,design_inputs):
+
+		"""
+			Calculate water flow rate, oil flow rate, and inferred droplet size off the design inputs from DAFD forward model
+		"""
+
+		orifice_size = design_inputs["orifice_size"]
+		aspect_ratio = design_inputs["aspect_ratio"]
+		expansion_ratio = design_inputs["expansion_ratio"]
+		normalized_orifice_length = design_inputs["normalized_orifice_length"]
+		normalized_water_inlet = design_inputs["normalized_water_inlet"]
+		normalized_oil_inlet = design_inputs["normalized_oil_inlet"]
+		flow_rate_ratio = design_inputs["flow_rate_ratio"]
+		capillary_number = design_inputs["capillary_number"]
+		droplet_size = design_inputs["droplet_size"]
+		generation_rate = design_inputs["generation_rate"]
+
+		channel_height = orifice_size * aspect_ratio
+		outlet_channel_width = orifice_size * expansion_ratio
+		orifice_length = orifice_size * normalized_orifice_length
+		water_inlet_width = orifice_size * normalized_water_inlet
+		oil_inlet = orifice_size * normalized_oil_inlet
+		oil_flow_rate = (capillary_number * 0.005 * channel_height * oil_inlet * 1e-12) / \
+						(0.0572 * ((water_inlet_width*1e-6)) * ((1 / (orifice_size*1e-6)) - (1 / (2 * oil_inlet * 1e-6))))
+		oil_flow_rate_ml_per_hour = oil_flow_rate * 3600 * 1e6
+		water_flow_rate = oil_flow_rate_ml_per_hour / flow_rate_ratio
+		water_flow_rate_ul_per_min = water_flow_rate * 1000 / 60
+		water_flow_rate_m3_per_s = water_flow_rate_ul_per_min * 1e-9/60
+
+		droplet_volume_m3 = water_flow_rate_m3_per_s / generation_rate
+		droplet_volume_nl = droplet_volume_m3 * 1e12
+		droplet_diameter_m = (((droplet_volume_m3*6)/(3.14159)))**(1/3)
+
+		droplet_inferred_size = droplet_diameter_m * 1e6
+
+		return oil_flow_rate_ml_per_hour, water_flow_rate_ul_per_min, droplet_inferred_size

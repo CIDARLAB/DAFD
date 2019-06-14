@@ -48,6 +48,9 @@ if stage == 2:
 	for x in di.MH.get_instance().output_headers:
 		result_str += str(fwd_results[x]) + "|"
 	result_str += str(fwd_results["regime"]) + "|"
+	result_str += str(fwd_results["oil_rate"]) + "|"
+	result_str += str(fwd_results["water_rate"]) + "|"
+	result_str += str(fwd_results["inferred_droplet_size"]) + "|"
 	print(result_str)
 
 else:
@@ -65,5 +68,8 @@ else:
 	for x in di.MH.get_instance().output_headers:
 		result_str += str(fwd_results[x]) + "|"
 	result_str += str(fwd_results["regime"]) + "|"
+	result_str += str(fwd_results["oil_rate"]) + "|"
+	result_str += str(fwd_results["water_rate"]) + "|"
+	result_str += str(fwd_results["inferred_droplet_size"]) + "|"
 
 	print(result_str)

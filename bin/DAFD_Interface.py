@@ -25,5 +25,14 @@ class DAFD_Interface:
 		# features is a dictionary containing the name of each feature as the key and the feature value as the value
 		raw_features = [features[x] for x in self.input_headers]
 		results = self.fw.predict(raw_features)
+		design_params = {}
+		for feature in features:
+			design_params[feature] = features[feature]
+		for result in results:
+			design_params[result] = results[result]
+		oil_rate, water_rate, inferred_droplet_size = self.MH.calculate_formulaic_relations(design_params)
+		results["oil_rate"] = oil_rate
+		results["water_rate"] = water_rate
+		results["inferred_droplet_size"] = inferred_droplet_size
 		return results
 
