@@ -130,6 +130,23 @@ class InterModel:
 		print("Start pred")
 		print(prediction)
 
+		default_threshold = 0.13
+		should_skip_optim = False
+		if "generation_rate" in desired_val_dict:
+			pred_rate_error = abs(desired_val_dict["generation_rate"] - prediction["generation_rate"]) / desired_val_dict["generation_rate"]
+			exp_rate_error = abs(desired_val_dict["generation_rate"] - self.MH.all_dat[closest_index]["generation_rate"]) / self.MH.all_dat[closest_index]["generation_rate"]
+			if pred_rate_error < default_threshold and exp_rate_error < default_threshold:
+				should_skip_optim = True
+		if "droplet_size" in desired_val_dict:
+			pred_rate_error = abs(desired_val_dict["droplet_size"] - prediction["droplet_size"]) / desired_val_dict["droplet_size"]
+			exp_rate_error = abs(desired_val_dict["droplet_size"] - self.MH.all_dat[closest_index]["droplet_size"]) / self.MH.all_dat[closest_index]["droplet_size"]
+			if pred_rate_error < default_threshold and exp_rate_error < default_threshold:
+				should_skip_optim = True
+
+		if should_skip_optim:
+			results = {x: self.MH.all_dat[closest_index][x] for x in self.MH.input_headers}
+			return results
+
 		with open("../model_data/InterResults.csv","w") as f:
 			f.write("Experimental outputs:"+str(self.MH.all_dat[closest_index]["generation_rate"])+","+str(self.MH.all_dat[closest_index]["droplet_size"])+"\n")
 
