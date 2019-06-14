@@ -84,6 +84,8 @@ class InterModel:
 		"""
 		prediction = self.fwd_model.predict(x, normalized=True)
 		#merrors = [abs(self.MH.normalize(prediction[head], head) - self.norm_desired_vals_global_adjusted[head]) for head in self.norm_desired_vals_global_adjusted]
+		with open("../model_data/InterResults.csv","a") as f:
+			f.write(",".join(map(str,x)) + "," + str(prediction['regime']) + "," + str(prediction['generation_rate']) + "," + str(prediction['droplet_size']) + "\n")
 		merrors = [abs(self.MH.normalize(prediction[head], head) - self.norm_desired_vals_global[head]) for head in self.norm_desired_vals_global]
 		return sum(merrors)
 
@@ -120,8 +122,29 @@ class InterModel:
 		self.first_point = start_pos
 
 		prediction = self.fwd_model.predict(start_pos, normalized=True)
+		all_dat_labels = ["chip_number"] + self.MH.input_headers + ["regime"] + self.MH.output_headers
+		print(",".join(all_dat_labels))
+		print("Starting point")
+		print(self.MH.all_dat[closest_index])
+		print([self.MH.all_dat[closest_index][x] for x in all_dat_labels])
 		print("Start pred")
 		print(prediction)
+
+		with open("../model_data/InterResults.csv","w") as f:
+			f.write("Experimental outputs:"+str(self.MH.all_dat[closest_index]["generation_rate"])+","+str(self.MH.all_dat[closest_index]["droplet_size"])+"\n")
+
+			if "generation_rate" not in desired_val_dict:
+				des_rate = "-1"
+			else:
+				des_rate = str(desired_val_dict["generation_rate"])
+
+			if "droplet_size" not in desired_val_dict:
+				des_size = "-1"
+			else:
+				des_size = str(desired_val_dict["droplet_size"])
+
+			f.write("Desired outputs:"+des_rate+","+des_size+"\n")
+			f.write(",".join(self.MH.input_headers) + ",regime,generation_rate,droplet_size\n")
 
 		#Adjust target to match forward model error (gradient method)
 		#prediction = self.fwd_model.predict(start_pos, normalized=True)
@@ -150,6 +173,7 @@ class InterModel:
 		#Denormalize results
 		results = {x: self.MH.denormalize(res["x"][i], x) for i, x in enumerate(self.MH.input_headers)}
 		prediction = self.fwd_model.predict([results[x] for x in self.MH.input_headers])
+		print("Final Prediction")
 		print(prediction)
 		return results
 
