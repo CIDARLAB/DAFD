@@ -84,7 +84,7 @@ class InterModel:
 		"""
 		prediction = self.fwd_model.predict(x, normalized=True)
 		#merrors = [abs(self.MH.normalize(prediction[head], head) - self.norm_desired_vals_global_adjusted[head]) for head in self.norm_desired_vals_global_adjusted]
-		with open("../model_data/InterResults.csv","a") as f:
+		with open("InterResults.csv","a") as f:
 			f.write(",".join(map(str,x)) + "," + str(prediction['regime']) + "," + str(prediction['generation_rate']) + "," + str(prediction['droplet_size']) + "\n")
 		merrors = [abs(self.MH.normalize(prediction[head], head) - self.norm_desired_vals_global[head]) for head in self.norm_desired_vals_global]
 		return sum(merrors)
@@ -147,7 +147,7 @@ class InterModel:
 			results = {x: self.MH.all_dat[closest_index][x] for x in self.MH.input_headers}
 			return results
 
-		with open("../model_data/InterResults.csv","w") as f:
+		with open("InterResults.csv","w") as f:
 			f.write("Experimental outputs:"+str(self.MH.all_dat[closest_index]["generation_rate"])+","+str(self.MH.all_dat[closest_index]["droplet_size"])+"\n")
 
 			if "generation_rate" not in desired_val_dict:
