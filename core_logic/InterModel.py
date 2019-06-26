@@ -100,7 +100,7 @@ class InterModel:
 					"," + str(prediction['droplet_size']) + "," + str(denorm_drop_error) + "\n")
 
 		merrors = [abs(self.MH.normalize(prediction[head], head) - self.norm_desired_vals_global[head]) for head in self.norm_desired_vals_global]
-		return sum(merrors) + drop_error*2
+		return sum(merrors) + drop_error*1
 
 
 	def interpolate(self,desired_val_dict,constraints):
