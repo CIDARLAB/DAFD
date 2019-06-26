@@ -84,10 +84,23 @@ class InterModel:
 		"""
 		prediction = self.fwd_model.predict(x, normalized=True)
 		#merrors = [abs(self.MH.normalize(prediction[head], head) - self.norm_desired_vals_global_adjusted[head]) for head in self.norm_desired_vals_global_adjusted]
+		val_dict = {self.MH.input_headers[i]:self.MH.denormalize(val,self.MH.input_headers[i]) for i,val in enumerate(x)}
+		val_dict["generation_rate"] = prediction["generation_rate"]
+		_, _, droplet_inferred_size = self.MH.calculate_formulaic_relations(val_dict)
+		denorm_drop_error = abs(droplet_inferred_size - prediction["droplet_size"])
+		drop_error = abs(self.MH.normalize(droplet_inferred_size,"droplet_size") - self.MH.normalize(prediction["droplet_size"],"droplet_size"))
+		print(prediction["droplet_size"])
+		print(droplet_inferred_size)
+		print(denorm_drop_error)
+		print(drop_error)
+		print()
+
 		with open("InterResults.csv","a") as f:
-			f.write(",".join(map(str,x)) + "," + str(prediction['regime']) + "," + str(prediction['generation_rate']) + "," + str(prediction['droplet_size']) + "\n")
+			f.write(",".join(map(str,x)) + "," + str(prediction['regime']) + "," + str(prediction['generation_rate']) +
+					"," + str(prediction['droplet_size']) + "," + str(denorm_drop_error) + "\n")
+
 		merrors = [abs(self.MH.normalize(prediction[head], head) - self.norm_desired_vals_global[head]) for head in self.norm_desired_vals_global]
-		return sum(merrors)
+		return sum(merrors) + drop_error*2
 
 
 	def interpolate(self,desired_val_dict,constraints):
@@ -161,7 +174,7 @@ class InterModel:
 				des_size = str(desired_val_dict["droplet_size"])
 
 			f.write("Desired outputs:"+des_rate+","+des_size+"\n")
-			f.write(",".join(self.MH.input_headers) + ",regime,generation_rate,droplet_size\n")
+			f.write(",".join(self.MH.input_headers) + ",regime,generation_rate,droplet_size,inferred_drop_error\n")
 
 		#Adjust target to match forward model error (gradient method)
 		#prediction = self.fwd_model.predict(start_pos, normalized=True)
