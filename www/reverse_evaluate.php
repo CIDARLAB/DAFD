@@ -143,6 +143,12 @@ $arr_outs = explode("|",explode("BEGIN:",$outputs)[1]);
     ?>
     <br>
 
+    Point Source:
+    <?php
+    echo $arr_outs[8];
+    ?>
+    <br>
+
 </div>
 
 <br>
@@ -153,19 +159,19 @@ $arr_outs = explode("|",explode("BEGIN:",$outputs)[1]);
 
     Generation Rate:
     <?php
-    echo $arr_outs[8];
+    echo $arr_outs[9];
     ?>
     <br>
 
     Droplet Size:
     <?php
-    echo $arr_outs[9];
+    echo $arr_outs[10];
     ?>
     <br>
 
     Regime:
     <?php
-    echo $arr_outs[10];
+    echo $arr_outs[11];
     ?>
     <br>
 
@@ -180,19 +186,19 @@ $arr_outs = explode("|",explode("BEGIN:",$outputs)[1]);
 
     Oil Flow Rate (ml/hr):
     <?php
-    echo $arr_outs[11];
+    echo $arr_outs[12];
     ?>
     <br>
 
     Water Flow Rate (ul/min):
     <?php
-    echo $arr_outs[12];
+    echo $arr_outs[13];
     ?>
     <br>
 
     Droplet Inferred Size:
     <?php
-    echo $arr_outs[13];
+    echo $arr_outs[14];
     ?>
     <br>
 </div>

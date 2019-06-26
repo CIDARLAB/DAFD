@@ -143,21 +143,37 @@ class InterModel:
 		print("Start pred")
 		print(prediction)
 
-		default_threshold = 0.13
-		should_skip_optim = False
-		if "generation_rate" in desired_val_dict:
-			pred_rate_error = abs(desired_val_dict["generation_rate"] - prediction["generation_rate"]) / desired_val_dict["generation_rate"]
-			exp_rate_error = abs(desired_val_dict["generation_rate"] - self.MH.all_dat[closest_index]["generation_rate"]) / self.MH.all_dat[closest_index]["generation_rate"]
-			if pred_rate_error < default_threshold and exp_rate_error < default_threshold:
-				should_skip_optim = True
-		if "droplet_size" in desired_val_dict:
-			pred_rate_error = abs(desired_val_dict["droplet_size"] - prediction["droplet_size"]) / desired_val_dict["droplet_size"]
-			exp_rate_error = abs(desired_val_dict["droplet_size"] - self.MH.all_dat[closest_index]["droplet_size"]) / self.MH.all_dat[closest_index]["droplet_size"]
-			if pred_rate_error < default_threshold and exp_rate_error < default_threshold:
-				should_skip_optim = True
+		should_skip_optim_rate = True
+		should_skip_optim_size = True
+		should_skip_optim_constraints = True
 
-		if should_skip_optim:
+		for constraint in constraints:
+			cons_range = constraints[constraint]
+			this_val = self.MH.all_dat[closest_index][constraint]
+			if this_val < cons_range[0] or this_val > cons_range[1]:
+				should_skip_optim_constraints = False
+
+		if "generation_rate" in desired_val_dict:
+			if desired_val_dict["generation_rate"] > 100:
+				pred_rate_error = abs(desired_val_dict["generation_rate"] - prediction["generation_rate"]) / desired_val_dict["generation_rate"]
+				exp_rate_error = abs(desired_val_dict["generation_rate"] - self.MH.all_dat[closest_index]["generation_rate"]) / self.MH.all_dat[closest_index]["generation_rate"]
+				if pred_rate_error > 0.15 or exp_rate_error > 0.15:
+					should_skip_optim_rate = False
+			else:
+				pred_rate_error = abs(desired_val_dict["generation_rate"] - prediction["generation_rate"])
+				exp_rate_error = abs(desired_val_dict["generation_rate"] - self.MH.all_dat[closest_index]["generation_rate"])
+				if pred_rate_error > 15 or exp_rate_error > 15:
+					should_skip_optim_rate = False
+
+		if "droplet_size" in desired_val_dict:
+			pred_size_error = abs(desired_val_dict["droplet_size"] - prediction["droplet_size"])
+			exp_size_error = abs(desired_val_dict["droplet_size"] - self.MH.all_dat[closest_index]["droplet_size"])
+			if pred_size_error > 5 and exp_size_error > 5:
+				should_skip_optim_size = False
+
+		if should_skip_optim_rate and should_skip_optim_size and should_skip_optim_constraints:
 			results = {x: self.MH.all_dat[closest_index][x] for x in self.MH.input_headers}
+			results["point_source"] = "Experimental"
 			return results
 
 		with open("InterResults.csv","w") as f:
@@ -203,7 +219,15 @@ class InterModel:
 		#Denormalize results
 		results = {x: self.MH.denormalize(res["x"][i], x) for i, x in enumerate(self.MH.input_headers)}
 		prediction = self.fwd_model.predict([results[x] for x in self.MH.input_headers])
+		print("Final Suggestions")
+		print(",".join(self.MH.input_headers) + "," + "desired_size" + "," + "predicted_generation_rate" + "," + "predicted_droplet_size")
+		output_string = ",".join([str(results[x]) for x in self.MH.input_headers])
+		output_string += "," + str(desired_val_dict["droplet_size"])
+		output_string += "," + str(prediction["generation_rate"])
+		output_string += "," + str(prediction["droplet_size"])
+		print(output_string)
 		print("Final Prediction")
 		print(prediction)
+		results["point_source"] = "Predicted"
 		return results
 

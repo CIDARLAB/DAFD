@@ -65,6 +65,8 @@ else:
 	for x in di.MH.get_instance().input_headers:
 		result_str += str(rev_results[x]) + "|"
 
+	result_str += str(rev_results["point_source"]) + "|"
+
 	for x in di.MH.get_instance().output_headers:
 		result_str += str(fwd_results[x]) + "|"
 	result_str += str(fwd_results["regime"]) + "|"
