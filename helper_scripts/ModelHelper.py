@@ -10,7 +10,7 @@ class ModelHelper:
 	Singleton
 	"""
 
-	RESOURCE_PATH = "experimental_data/ExperimentalResults_880.csv"		# Experimental data location
+	RESOURCE_PATH = "experimental_data/ExperimentalResults_998.csv"		# Experimental data location
 	NUM_OUTPUTS = 2													# Droplet Generation Rate + Droplet Size
 
 	instance = None				# Singleton
@@ -196,7 +196,6 @@ class ModelHelper:
 		normalized_oil_inlet = design_inputs["normalized_oil_inlet"]
 		flow_rate_ratio = design_inputs["flow_rate_ratio"]
 		capillary_number = design_inputs["capillary_number"]
-		droplet_size = design_inputs["droplet_size"]
 		generation_rate = design_inputs["generation_rate"]
 
 		channel_height = orifice_size * aspect_ratio
