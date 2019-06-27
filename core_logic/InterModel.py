@@ -37,7 +37,7 @@ class InterModel:
 		self.fwd_model = ForwardModel()
 
 
-	def get_closest_point(self, desired_vals, constraints):
+	def get_closest_point(self, desired_vals, constraints={}, max_drop_exp_error=-1, skip_list = []):
 		"""Return closest real data point to our desired values that is within the given constraints
 		Used to find a good starting point for our solution
 		THIS IS FUNDAMENTALLY DIFFERENT FROM THE NEAREST DATA POINT FORWARD MODEL!
@@ -60,12 +60,37 @@ class InterModel:
 		min_val = float("inf")
 		match_index = -1
 		for i in range(self.MH.train_data_size):
+			if i in skip_list:
+				continue
 			if use_regime_2 and self.MH.train_regime_dat[i] != 2:
 				continue
 
-			nval = sum([abs(self.MH.normalize(self.MH.train_labels_dat[x][i], x) - desired_vals[x]) for x in desired_vals])
+			if max_drop_exp_error != -1 and "droplet_size" in desired_vals:
+				exp_error = abs(self.MH.denormalize(desired_vals["droplet_size"],"droplet_size") - self.MH.train_labels_dat["droplet_size"][i])
+				if exp_error > max_drop_exp_error:
+					continue
 
 			feat_point = self.MH.train_features_dat[i]
+			prediction = self.fwd_model.predict(feat_point, normalized=True)
+
+			if prediction["regime"] != self.MH.train_regime_dat[i]:
+				continue
+
+			nval = sum([abs(self.MH.normalize(self.MH.train_labels_dat[x][i], x) - desired_vals[x]) for x in desired_vals])
+			if "droplet_size" in desired_vals:
+				nval += abs(self.MH.normalize(prediction["droplet_size"],"droplet_size") - desired_vals["droplet_size"])
+
+				denorm_feat_list = self.MH.denormalize_set(feat_point)
+				denorm_feat = {x:denorm_feat_list[i] for i,x in enumerate(self.MH.input_headers)}
+				denorm_feat["generation_rate"] = prediction["generation_rate"]
+
+				_,_,inferred_size = self.MH.calculate_formulaic_relations(denorm_feat)
+				inferred_size_error = abs(desired_vals["droplet_size"] - self.MH.normalize(inferred_size,"droplet_size"))
+				nval+=inferred_size_error
+
+			if "generation_rate" in desired_vals:
+				nval += abs(self.MH.normalize(prediction["generation_rate"],"generation_rate") - desired_vals["generation_rate"])
+
 			for j in range(len(self.MH.input_headers)):
 				if self.MH.input_headers[j] in 	constraints:
 					cname = self.MH.input_headers[j]
@@ -87,8 +112,12 @@ class InterModel:
 		val_dict = {self.MH.input_headers[i]:self.MH.denormalize(val,self.MH.input_headers[i]) for i,val in enumerate(x)}
 		val_dict["generation_rate"] = prediction["generation_rate"]
 		_, _, droplet_inferred_size = self.MH.calculate_formulaic_relations(val_dict)
-		denorm_drop_error = abs(droplet_inferred_size - prediction["droplet_size"])
-		drop_error = abs(self.MH.normalize(droplet_inferred_size,"droplet_size") - self.MH.normalize(prediction["droplet_size"],"droplet_size"))
+		if "droplet_size" in self.desired_vals_global:
+			denorm_drop_error = abs(droplet_inferred_size - self.desired_vals_global["droplet_size"])
+			drop_error = abs(self.MH.normalize(droplet_inferred_size,"droplet_size") - self.norm_desired_vals_global["droplet_size"])
+		else:
+			denorm_drop_error = abs(droplet_inferred_size - prediction["droplet_size"])
+			drop_error = abs(self.MH.normalize(droplet_inferred_size,"droplet_size") - self.MH.normalize(prediction["droplet_size"],"droplet_size"))
 		print(prediction["droplet_size"])
 		print(droplet_inferred_size)
 		print(denorm_drop_error)
@@ -126,55 +155,68 @@ class InterModel:
 			norm_desired_vals[lname] = self.MH.normalize(desired_val_dict[lname], lname)
 
 		self.norm_desired_vals_global = norm_desired_vals
-		start_pos, closest_index = self.get_closest_point(norm_desired_vals, norm_constraints)
-		closest_labels = {}
-		for head in self.MH.output_headers:
-			closest_labels[head] = self.MH.train_labels_dat[head][closest_index]
+		self.desired_vals_global = desired_val_dict
 
-		#Get acceptable starting point
-		self.first_point = start_pos
 
-		prediction = self.fwd_model.predict(start_pos, normalized=True)
-		all_dat_labels = ["chip_number"] + self.MH.input_headers + ["regime"] + self.MH.output_headers
-		print(",".join(all_dat_labels))
-		print("Starting point")
-		print(self.MH.all_dat[closest_index])
-		print([self.MH.all_dat[closest_index][x] for x in all_dat_labels])
-		print("Start pred")
-		print(prediction)
 
-		should_skip_optim_rate = True
-		should_skip_optim_size = True
-		should_skip_optim_constraints = True
+		skip_list = []
+		while(True):
+			start_pos, closest_index = self.get_closest_point(norm_desired_vals, constraints=norm_constraints, max_drop_exp_error=5, skip_list=skip_list)
+			if closest_index == -1:
+				start_pos, closest_index = self.get_closest_point(norm_desired_vals, constraints=norm_constraints)
+				break
+			skip_list.append(closest_index)
 
-		for constraint in constraints:
-			cons_range = constraints[constraint]
-			this_val = self.MH.all_dat[closest_index][constraint]
-			if this_val < cons_range[0] or this_val > cons_range[1]:
-				should_skip_optim_constraints = False
+			prediction = self.fwd_model.predict(start_pos, normalized=True)
+			all_dat_labels = ["chip_number"] + self.MH.input_headers + ["regime"] + self.MH.output_headers
+			print(",".join(all_dat_labels))
+			print("Starting point")
+			print(self.MH.all_dat[closest_index])
+			print([self.MH.all_dat[closest_index][x] for x in all_dat_labels])
+			print("Start pred")
+			print(prediction)
 
-		if "generation_rate" in desired_val_dict:
-			if desired_val_dict["generation_rate"] > 100:
-				pred_rate_error = abs(desired_val_dict["generation_rate"] - prediction["generation_rate"]) / desired_val_dict["generation_rate"]
-				exp_rate_error = abs(desired_val_dict["generation_rate"] - self.MH.all_dat[closest_index]["generation_rate"]) / self.MH.all_dat[closest_index]["generation_rate"]
-				if pred_rate_error > 0.15 or exp_rate_error > 0.15:
-					should_skip_optim_rate = False
-			else:
-				pred_rate_error = abs(desired_val_dict["generation_rate"] - prediction["generation_rate"])
-				exp_rate_error = abs(desired_val_dict["generation_rate"] - self.MH.all_dat[closest_index]["generation_rate"])
-				if pred_rate_error > 15 or exp_rate_error > 15:
-					should_skip_optim_rate = False
+			should_skip_optim_rate = True
+			should_skip_optim_size = True
+			should_skip_optim_constraints = True
 
-		if "droplet_size" in desired_val_dict:
-			pred_size_error = abs(desired_val_dict["droplet_size"] - prediction["droplet_size"])
-			exp_size_error = abs(desired_val_dict["droplet_size"] - self.MH.all_dat[closest_index]["droplet_size"])
-			if pred_size_error > 5 and exp_size_error > 5:
-				should_skip_optim_size = False
+			for constraint in constraints:
+				cons_range = constraints[constraint]
+				this_val = self.MH.all_dat[closest_index][constraint]
+				if this_val < cons_range[0] or this_val > cons_range[1]:
+					should_skip_optim_constraints = False
 
-		if should_skip_optim_rate and should_skip_optim_size and should_skip_optim_constraints:
-			results = {x: self.MH.all_dat[closest_index][x] for x in self.MH.input_headers}
-			results["point_source"] = "Experimental"
-			return results
+			if "generation_rate" in desired_val_dict:
+				if desired_val_dict["generation_rate"] > 100:
+					pred_rate_error = abs(desired_val_dict["generation_rate"] - prediction["generation_rate"]) / desired_val_dict["generation_rate"]
+					exp_rate_error = abs(desired_val_dict["generation_rate"] - self.MH.all_dat[closest_index]["generation_rate"]) / self.MH.all_dat[closest_index]["generation_rate"]
+					if pred_rate_error > 0.15 or exp_rate_error > 0.15:
+						should_skip_optim_rate = False
+				else:
+					pred_rate_error = abs(desired_val_dict["generation_rate"] - prediction["generation_rate"])
+					exp_rate_error = abs(desired_val_dict["generation_rate"] - self.MH.all_dat[closest_index]["generation_rate"])
+					if pred_rate_error > 15 or exp_rate_error > 15:
+						should_skip_optim_rate = False
+
+			if "droplet_size" in desired_val_dict:
+				pred_size_error = abs(desired_val_dict["droplet_size"] - prediction["droplet_size"])
+				exp_size_error = abs(desired_val_dict["droplet_size"] - self.MH.all_dat[closest_index]["droplet_size"])
+				print(self.MH.all_dat[closest_index])
+				pred_point = {x:self.MH.all_dat[closest_index][x] for x in self.MH.all_dat[closest_index]}
+				pred_point["generation_rate"] = prediction["generation_rate"]
+				print(self.MH.all_dat[closest_index])
+				_,_,inferred_size = self.MH.calculate_formulaic_relations(pred_point)
+				inferred_size_error = abs(desired_val_dict["droplet_size"] - inferred_size)
+				print(inferred_size)
+				print(inferred_size_error)
+				if pred_size_error > 10 or inferred_size_error > 10 or exp_size_error > 5:
+					should_skip_optim_size = False
+
+			if should_skip_optim_rate and should_skip_optim_size and should_skip_optim_constraints:
+				results = {x: self.MH.all_dat[closest_index][x] for x in self.MH.input_headers}
+				results["point_source"] = "Experimental"
+				print(results)
+				return results
 
 		with open("InterResults.csv","w") as f:
 			f.write("Experimental outputs:"+str(self.MH.all_dat[closest_index]["generation_rate"])+","+str(self.MH.all_dat[closest_index]["droplet_size"])+"\n")
