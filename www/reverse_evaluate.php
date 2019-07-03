@@ -95,43 +95,43 @@ $arr_outs = explode("|",explode("BEGIN:",$outputs)[1]);
 <div>
     <h1>Suggested Parameters</h1>
 
-    Orifice Size:
+    Orifice Width (um):
     <?php
     echo $arr_outs[0];
     ?>
     <br>
 
-    Aspect Ratio:
+    Aspect Ratio (Channel Depth Divided By Orifice Width):
     <?php
     echo $arr_outs[1];
     ?>
     <br>
 
-    Expansion Ratio:
+    Expansion Ratio (Outlet Channel Width Divided By Orifice Width):
     <?php
     echo $arr_outs[2];
     ?>
     <br>
 
-    Normalized Orifice Length:
+    Normalized Orifice Length (Orifice Length Divided By Orifice Width):
     <?php
     echo $arr_outs[3];
     ?>
     <br>
 
-    Normalized Water Inlet:
+    Normalized Water Inlet Width (Water Inlet Width Divided By Orifice Width):
     <?php
     echo $arr_outs[4];
     ?>
     <br>
 
-    Normalized Oil Inlet:
+    Normalized Oil Inlet Width (Oil Inlet Width Divided By Orifice Width):
     <?php
     echo $arr_outs[5];
     ?>
     <br>
 
-    Flow Rate Ratio:
+    Flow Rate Ratio (Oil Flow Rate Divided By Water Flow Rate):
     <?php
     echo $arr_outs[6];
     ?>
@@ -157,13 +157,13 @@ $arr_outs = explode("|",explode("BEGIN:",$outputs)[1]);
 <div>
     <h1>Predicted Outputs</h1>
 
-    Generation Rate:
+    Generation Rate (Hz):
     <?php
     echo $arr_outs[9];
     ?>
     <br>
 
-    Droplet Size:
+    Droplet Size (um):
     <?php
     echo $arr_outs[10];
     ?>
@@ -196,7 +196,7 @@ $arr_outs = explode("|",explode("BEGIN:",$outputs)[1]);
     ?>
     <br>
 
-    Droplet Inferred Size:
+    Droplet Inferred Size (um):
     <?php
     echo $arr_outs[14];
     ?>

@@ -66,43 +66,43 @@ $arr_outs = explode("|",explode("BEGIN:",$outputs)[1]);
 <div>
     <h1>Forward Model Inputs</h1>
 
-    Orifice Size:
+    Orifice Width (um):
     <?php
     echo $orifice_size;
     ?>
     <br>
 
-    Aspect Ratio:
+    Aspect Ratio (Channel Depth Divided By Orifice Width):
     <?php
     echo $aspect_ratio;
     ?>
     <br>
 
-    Expansion Ratio:
+    Expansion Ratio (Outlet Channel Width Divided By Orifice Width):
     <?php
     echo $expansion_ratio;
     ?>
     <br>
 
-    Normalized Orifice Length:
+    Normalized Orifice Length (Orifice Length Divided By Orifice Width):
     <?php
     echo $normalized_orifice_length;
     ?>
     <br>
 
-    Normalized Water Inlet:
+    Normalized Water Inlet Width (Water Inlet Width Divided By Orifice Width):
     <?php
     echo $normalized_water_inlet;
     ?>
     <br>
 
-    Normalized Oil Inlet:
+    Normalized Oil Inlet Width (Oil Inlet Width Divided By Orifice Width):
     <?php
     echo $normalized_oil_inlet;
     ?>
     <br>
 
-    Flow Rate Ratio:
+    Flow Rate Ratio (Oil Flow Rate Divided By Water Flow Rate):
     <?php
     echo $flow_rate_ratio;
     ?>
@@ -122,13 +122,13 @@ $arr_outs = explode("|",explode("BEGIN:",$outputs)[1]);
 <div>
     <h1>Forward Model Results</h1>
 
-    Generation Rate:
+    Generation Rate (Hz):
     <?php
     echo $arr_outs[0];
     ?>
     <br>
 
-    Droplet Size:
+    Droplet Diameter (um):
     <?php
     echo $arr_outs[1];
     ?>
@@ -160,7 +160,7 @@ $arr_outs = explode("|",explode("BEGIN:",$outputs)[1]);
     ?>
     <br>
 
-    Droplet Inferred Size:
+    Droplet Inferred Size (um):
     <?php
     echo $arr_outs[5];
     ?>

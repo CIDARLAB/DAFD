@@ -36,33 +36,39 @@ div {
     <br>
     <br>
 
-    <div>
-        <h1>Features</h1>
+    <div style="text-align:right">
+        <h1 style="text-align: center">Features</h1>
 
-        <label for="orifice-size">Orifice Size</label>
+        <label for="orifice-size">Orifice Width (um) [75-175]</label>
         <input name="orifice-size" id="orifice-size"><br>
 
-        <label for="aspect-ratio">Aspect Ratio</label>
+        <label for="aspect-ratio">Aspect Ratio (Channel Depth Divided By Orifice Width) [1.0-3.0]</label>
         <input name="aspect-ratio" id="aspect-ratio"><br>
 
-        <label for="expansion-ratio">Expansion Ratio</label>
+        <label for="expansion-ratio">Expansion Ratio (Outlet Channel Width Divided By Orifice Width) [2.0-6.0]</label>
         <input name="expansion-ratio" id="expansion-ratio"><br>
 
-        <label for="normalized-orifice-length">Normalized Orifice Length</label>
+        <label for="normalized-orifice-length">Normalized Orifice Length (Orifice Length Divided By Orifice Width) [1.0-3.0]</label>
         <input name="normalized-orifice-length" id="normalized-orifice-length"><br>
 
-        <label for="normalized-water-inlet">Normalized Water Inlet</label>
+        <label for="normalized-water-inlet">Normalized Water Inlet Width (Water Inlet Width Divided By Orifice Width) [2.0-4.0]</label>
         <input name="normalized-water-inlet" id="normalized-water-inlet"><br>
 
-        <label for="normalized-oil-inlet">Normalized Oil Inlet</label>
+        <label for="normalized-oil-inlet">Normalized Oil Inlet Width (Oil Inlet Width Divided By Orifice Width) [2.0-4.0]</label>
         <input name="normalized-oil-inlet" id="normalized-oil-inlet"><br>
 
-        <label for="flow-rate-ratio">Flow Rate Ratio</label>
+        <label for="flow-rate-ratio">Flow Rate Ratio (Oil Flow Rate Divided By Water Flow Rate) [2.0-22.0]</label>
         <input name="flow-rate-ratio" id="flow-rate-ratio"><br>
 
-        <label for="capillary-number">Capillary Number</label>
+        <label for="capillary-number">Capillary Number [0.03-1.06]</label>
         <input name="capillary-number" id="capillary-number"><br>
 
+    </div>
+
+    <br>
+    <br>
+
+    <div>
         <input TYPE="submit" name="submit" />
     </div>
 </form>
