@@ -55,6 +55,18 @@ class DAFD_GUI:
 			param_entry.configure(background="white")
 			self.entries_dict[param_name] = param_entry
 
+		regime_frame = tkinter.Frame(inputs_frame)
+		regime_frame.pack(side="top")
+		regime_frame.configure(background="white")
+		regime_label = tkinter.Label(regime_frame,width=40,anchor="e")
+		regime_label.pack(side="left")
+		regime_label["text"] = "regime (1-2) : "
+		regime_label.configure(background="white")
+		regime_entry = tkinter.Entry(regime_frame)
+		regime_entry.pack(side="left")
+		regime_entry.configure(background="white")
+		self.entries_dict["regime"] = regime_entry
+
 		#Pack the desired output elements together
 		outputs_frame = tkinter.Frame(self.root,pady=20)
 		outputs_frame.pack(side="top")
@@ -120,6 +132,13 @@ class DAFD_GUI:
 				elif wanted_constraint[1] >= self.di.ranges_dict[param_name][1]:
 					tkinter.messagebox.showwarning("Out of range constraint",param_name + " was too high.")
 				constraints[param_name] = wanted_constraint
+
+		regime_entry = self.entries_dict["regime"].get()
+		if regime_entry != "":
+			if regime_entry == "1" or regime_entry == "2":
+				constraints["regime"] = float(regime_entry)
+			else:
+				tkinter.messagebox.showwarning("Regime must be either 1 or 2. Ignoring.")
 
 		# Get the desired outputs
 		# Note one can be left blank, in which case the interpolation model will simply operate on the other value's model

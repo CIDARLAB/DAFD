@@ -76,6 +76,9 @@ class InterModel:
 			if prediction["regime"] != self.MH.train_regime_dat[i]:
 				continue
 
+			if self.constrained_regime != -1 and prediction["regime"] != self.constrained_regime:
+				continue
+
 			nval = sum([abs(self.MH.normalize(self.MH.train_labels_dat[x][i], x) - desired_vals[x]) for x in desired_vals])
 			if "droplet_size" in desired_vals:
 				nval += abs(self.MH.normalize(prediction["droplet_size"],"droplet_size") - desired_vals["droplet_size"])
@@ -144,6 +147,8 @@ class InterModel:
 				Again, just leave input types you don't care about blank
 		"""
 
+		self.constrained_regime = constraints.pop("regime", -1)
+
 		norm_constraints = {}
 		for cname in constraints:
 			cons_low = self.MH.normalize(constraints[cname][0],cname)
@@ -185,6 +190,10 @@ class InterModel:
 				this_val = self.MH.all_dat[closest_index][constraint]
 				if this_val < cons_range[0] or this_val > cons_range[1]:
 					should_skip_optim_constraints = False
+
+
+			if self.constrained_regime != -1 and self.MH.all_dat[closest_index]["regime"] != self.constrained_regime:
+				should_skip_optim_constraints = False
 
 			if "generation_rate" in desired_val_dict:
 				if desired_val_dict["generation_rate"] > 100:
