@@ -111,6 +111,24 @@ class InterModel:
 		Used in our minimization function
 		"""
 		prediction = self.fwd_model.predict(x, normalized=True)
+		val_dict = {self.MH.input_headers[i]:self.MH.denormalize(val,self.MH.input_headers[i]) for i,val in enumerate(x)}
+		val_dict["generation_rate"] = prediction["generation_rate"]
+		_, _, droplet_inferred_size = self.MH.calculate_formulaic_relations(val_dict)
+		if "droplet_size" in self.desired_vals_global:
+			denorm_drop_error = abs(droplet_inferred_size - self.desired_vals_global["droplet_size"])
+			drop_error = abs(self.MH.normalize(droplet_inferred_size,"droplet_size") - self.norm_desired_vals_global["droplet_size"])
+		else:
+			denorm_drop_error = abs(droplet_inferred_size - prediction["droplet_size"])
+			drop_error = abs(self.MH.normalize(droplet_inferred_size,"droplet_size") - self.MH.normalize(prediction["droplet_size"],"droplet_size"))
+
+		merrors = [abs(self.MH.normalize(prediction[head], head) - self.norm_desired_vals_global[head]) for head in self.norm_desired_vals_global]
+		return sum(merrors) + drop_error*1
+
+	def callback_func(self, x):
+		"""Returns how far each solution mapped on the model deviates from the desired value
+		Used in our minimization function
+		"""
+		prediction = self.fwd_model.predict(x, normalized=True)
 		#merrors = [abs(self.MH.normalize(prediction[head], head) - self.norm_desired_vals_global_adjusted[head]) for head in self.norm_desired_vals_global_adjusted]
 		val_dict = {self.MH.input_headers[i]:self.MH.denormalize(val,self.MH.input_headers[i]) for i,val in enumerate(x)}
 		val_dict["generation_rate"] = prediction["generation_rate"]
@@ -122,17 +140,15 @@ class InterModel:
 			denorm_drop_error = abs(droplet_inferred_size - prediction["droplet_size"])
 			drop_error = abs(self.MH.normalize(droplet_inferred_size,"droplet_size") - self.MH.normalize(prediction["droplet_size"],"droplet_size"))
 		print(prediction["droplet_size"])
-		print(droplet_inferred_size)
-		print(denorm_drop_error)
-		print(drop_error)
+		print(prediction["generation_rate"])
+		merrors = [abs(self.MH.normalize(prediction[head], head) - self.norm_desired_vals_global[head]) for head in self.norm_desired_vals_global]
+		all_errors = sum(merrors) + drop_error
+		print(all_errors)
 		print()
 
 		with open("InterResults.csv","a") as f:
 			f.write(",".join(map(str,x)) + "," + str(prediction['regime']) + "," + str(prediction['generation_rate']) +
-					"," + str(prediction['droplet_size']) + "," + str(denorm_drop_error) + "\n")
-
-		merrors = [abs(self.MH.normalize(prediction[head], head) - self.norm_desired_vals_global[head]) for head in self.norm_desired_vals_global]
-		return sum(merrors) + drop_error*1
+					"," + str(prediction['droplet_size']) + "," + str(all_errors) + "\n")
 
 
 	def interpolate(self,desired_val_dict,constraints):
@@ -241,29 +257,21 @@ class InterModel:
 				des_size = str(desired_val_dict["droplet_size"])
 
 			f.write("Desired outputs:"+des_rate+","+des_size+"\n")
-			f.write(",".join(self.MH.input_headers) + ",regime,generation_rate,droplet_size,inferred_drop_error\n")
+			f.write(",".join(self.MH.input_headers) + ",regime,generation_rate,droplet_size,cost_function\n")
 
-		#Adjust target to match forward model error (gradient method)
-		#prediction = self.fwd_model.predict(start_pos, normalized=True)
-		#self.norm_desired_vals_global_adjusted = {}
-		#for head in norm_desired_vals:
-		#	diff = self.MH.normalize(prediction[head],head) - self.MH.normalize(closest_labels[head],head)
-		#	self.norm_desired_vals_global_adjusted[head] = norm_desired_vals[head] + diff
-
-
-
-
-		options = {'eps':1e-6}
+		options = {'eps':1e-6,'disp':True}
 
 		#Minimization function
 		res = minimize(self.model_error,
 				start_pos, 
 				method='SLSQP',
 				options=options,
+				callback=self.callback_func,
 				bounds = tuple([(norm_constraints[x][0],norm_constraints[x][1])
 								if x in norm_constraints
 								else (self.MH.ranges_dict_normalized[x][0],self.MH.ranges_dict_normalized[x][1])
 								for x in self.MH.input_headers]))
+		self.callback_func(res["x"])
 
 		self.last_point = [res["x"][i] for i in range(len(res["x"]))]
 
