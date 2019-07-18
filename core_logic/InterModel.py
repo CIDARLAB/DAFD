@@ -13,6 +13,7 @@ import sys
 import os
 from core_logic.ForwardModel import ForwardModel
 from helper_scripts.ModelHelper import ModelHelper
+import tensorflow as tf
 
 from matplotlib import pyplot as plt
 
@@ -97,7 +98,9 @@ class InterModel:
 			for j in range(len(self.MH.input_headers)):
 				if self.MH.input_headers[j] in 	constraints:
 					cname = self.MH.input_headers[j]
-					nval += abs(feat_point[j] - (constraints[cname][0] + constraints[cname][1])/2.0)
+					if feat_point[j] < constraints[cname][0] or feat_point[j] > constraints[cname][0]:
+						nval += 1000
+						nval += abs(feat_point[j] - (constraints[cname][0] + constraints[cname][1])/2.0)
 
 			if nval < min_val:
 				closest_point = feat_point
@@ -147,8 +150,17 @@ class InterModel:
 		print()
 
 		with open("InterResults.csv","a") as f:
-			f.write(",".join(map(str,x)) + "," + str(prediction['regime']) + "," + str(prediction['generation_rate']) +
+			f.write(",".join(map(str,self.MH.denormalize_set(x))) + "," + str(prediction['regime']) + "," + str(prediction['generation_rate']) +
 					"," + str(prediction['droplet_size']) + "," + str(all_errors) + "\n")
+
+	def correct_by_constraints(self,values,constraints):
+		"""Sets values to be within constraints (can be normalized or not, as long as values match constraints)"""
+		for i,head in enumerate(self.MH.input_headers):
+			if head in constraints:
+				if values[i] < constraints[head][0]:
+					values[i] = constraints[head][0]
+				elif values[i] > constraints[head][1]:
+					values[i] = constraints[head][1]
 
 
 	def interpolate(self,desired_val_dict,constraints):
@@ -259,24 +271,75 @@ class InterModel:
 			f.write("Desired outputs:"+des_rate+","+des_size+"\n")
 			f.write(",".join(self.MH.input_headers) + ",regime,generation_rate,droplet_size,cost_function\n")
 
-		options = {'eps':1e-6,'disp':True}
+		pos = start_pos
+		self.callback_func(pos)
 
-		#Minimization function
-		res = minimize(self.model_error,
-				start_pos, 
-				method='SLSQP',
-				options=options,
-				callback=self.callback_func,
-				bounds = tuple([(norm_constraints[x][0],norm_constraints[x][1])
-								if x in norm_constraints
-								else (self.MH.ranges_dict_normalized[x][0],self.MH.ranges_dict_normalized[x][1])
-								for x in self.MH.input_headers]))
-		self.callback_func(res["x"])
+		self.correct_by_constraints(pos,norm_constraints)
 
-		self.last_point = [res["x"][i] for i in range(len(res["x"]))]
+		loss = self.model_error(pos)
+		samplesize = 1e-3
+		stepsize = 1e-2
+		ftol = 1e-9
+
+		#for i in range(5000):
+		#	new_pos = [x for x in pos]
+		#	new_loss = loss
+		#	for index, val in enumerate(pos):
+		#		copy = [x for x in pos]
+		#		copy[index] = val+samplesize
+		#		self.correct_by_constraints(copy,norm_constraints)
+		#		sampled_derivative = (loss - self.model_error(copy))/samplesize
+		#		new_pos[index] = val + sampled_derivative*stepsize
+
+		#	new_loss = self.model_error(new_pos)
+
+
+
+
+		#	if loss - new_loss < ftol and loss > new_loss:
+		#		print(loss)
+		#		print(new_loss)
+		#		break
+
+		#	pos = new_pos
+		#	loss = new_loss
+
+		#	self.callback_func(pos)
+
+		for i in range(5000):
+			new_pos = pos
+			new_loss = loss
+			for index, val in enumerate(pos):
+				copy = [x for x in pos]
+				copy[index] = val+stepsize
+				self.correct_by_constraints(copy,norm_constraints)
+				error = self.model_error(copy)
+				if error < new_loss:
+					new_pos = copy
+					new_loss = error
+
+				copy = [x for x in pos]
+				copy[index] = val-stepsize
+				self.correct_by_constraints(copy,norm_constraints)
+				error = self.model_error(copy)
+				if error < new_loss:
+					new_pos = copy
+					new_loss = error
+
+			if loss - new_loss < ftol:
+				print(loss)
+				print(new_loss)
+				break
+
+			pos = new_pos
+			loss = new_loss
+
+			self.callback_func(pos)
+
+		self.last_point = pos
 
 		#Denormalize results
-		results = {x: self.MH.denormalize(res["x"][i], x) for i, x in enumerate(self.MH.input_headers)}
+		results = {x: self.MH.denormalize(pos[i], x) for i, x in enumerate(self.MH.input_headers)}
 		prediction = self.fwd_model.predict([results[x] for x in self.MH.input_headers])
 		print("Final Suggestions")
 		print(",".join(self.MH.input_headers) + "," + "desired_size" + "," + "predicted_generation_rate" + "," + "predicted_droplet_size")
