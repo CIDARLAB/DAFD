@@ -27,8 +27,12 @@ with open(os.path.dirname(os.path.abspath(__file__)) + "/" + "cmd_inputs.txt","r
 		if stage == 0:
 			param_name = line.split("=")[0]
 			param_pair = line.split("=")[1].split(":")
-			wanted_constraint = (float(param_pair[0]), float(param_pair[1]))
-			constraints[param_name] = wanted_constraint
+			if param_name=="regime":
+				wanted_constraint=float(param_pair[0])
+				constraints[param_name] = wanted_constraint
+			else:
+				wanted_constraint = (float(param_pair[0]), float(param_pair[1]))
+				constraints[param_name] = wanted_constraint
 
 		if stage == 1:
 			param_name = line.split("=")[0]
