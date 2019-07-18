@@ -1,36 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<style>
-body {
-    background-image: url("science_bck.jpg");
-    background-repeat: no-repeat;
-    background-position: right top;
-    background-attachment: fixed;
-    background-size: 100%;
-    text-align:center;
-}
-
-div {
-    position: relative;
-    -moz-box-shadow: 1px 2px 4px rgba(0, 0, 0,0.5);
-    -webkit-box-shadow: 1px 2px 4px rgba(0, 0, 0, .5);
-    box-shadow: 1px 2px 4px rgba(0, 0, 0, .5);
-    padding: 20px;
-    background: white;
-    display: inline-block;
-}
-</style>
-<head>
-    <meta charset="UTF-8">
-    <title>DAFD</title>
-</head>
-<body>
-<div>
-    <img src="DAFD_logo.png" alt="DAFD" style="width:600px;height:300px;">
-</div>
-
-<br>
-<br>
 
 <?php
 
@@ -42,13 +9,14 @@ $normalized_water_inlet=$_POST['normalized-water-inlet'];
 $normalized_oil_inlet=$_POST['normalized-oil-inlet'];
 $flow_rate_ratio=$_POST['flow-rate-ratio'];
 $capillary_number=$_POST['capillary-number'];
+$regime=$_POST['regime'];
 
 $generation_rate=$_POST['generation-rate'];
 $droplet_size=$_POST['droplet-size'];
 
-$constraints = array($orifice_size, $aspect_ratio, $expansion_ratio, $normalized_orifice_length, $normalized_water_inlet, $normalized_oil_inlet, $flow_rate_ratio, $capillary_number);
+$constraints = array($orifice_size, $aspect_ratio, $expansion_ratio, $normalized_orifice_length, $normalized_water_inlet, $normalized_oil_inlet, $flow_rate_ratio, $capillary_number, $regime);
 $constraint_names = array("orifice_size", "aspect_ratio", "expansion_ratio", "normalized_orifice_length",
-			"normalized_water_inlet", "normalized_oil_inlet", "flow_rate_ratio", "capillary_number");
+			"normalized_water_inlet", "normalized_oil_inlet", "flow_rate_ratio", "capillary_number","regime");
 
 $desired_vals = array($generation_rate, $droplet_size);
 $desired_vals_names = array("generation_rate","droplet_size");
@@ -92,7 +60,8 @@ $outputs = shell_exec($DAFD_location . "venv/bin/python3 " . $DAFD_location . "D
 $arr_outs = explode("|",explode("BEGIN:",$outputs)[1]);
 ?>
 
-<div>
+<div style="text-align: center">
+<div class="div_float">
     <h1>Suggested Parameters</h1>
 
     Orifice Width (um):
@@ -154,7 +123,7 @@ $arr_outs = explode("|",explode("BEGIN:",$outputs)[1]);
 <br>
 <br>
 
-<div>
+<div class="div_float">
     <h1>Predicted Outputs</h1>
 
     Generation Rate (Hz):
@@ -180,7 +149,7 @@ $arr_outs = explode("|",explode("BEGIN:",$outputs)[1]);
 <br>
 <br>
 
-<div>
+<div class="div_float">
     <h1>Calculated Values</h1>
 
 
@@ -202,5 +171,5 @@ $arr_outs = explode("|",explode("BEGIN:",$outputs)[1]);
     ?>
     <br>
 </div>
+</div>
 
-</body>

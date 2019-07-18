@@ -1,37 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<style>
-body {
-    background-image: url("science_bck.jpg");
-    background-repeat: no-repeat;
-    background-position: right top;
-    background-attachment: fixed;
-    background-size: 100%;
-    text-align:center;
-}
-
-div {
-    position: relative;
-    -moz-box-shadow: 1px 2px 4px rgba(0, 0, 0,0.5);
-    -webkit-box-shadow: 1px 2px 4px rgba(0, 0, 0, .5);
-    box-shadow: 1px 2px 4px rgba(0, 0, 0, .5);
-    padding: 20px;
-    background: white;
-    display: inline-block;
-}
-</style>
-<head>
-    <meta charset="UTF-8">
-    <title>DAFD</title>
-</head>
-<body>
-<div>
-    <img src="DAFD_logo.png" alt="DAFD" style="width:600px;height:300px;">
-</div>
-
-<br>
-<br>
-
 <?php
 
 $orifice_size=$_POST['orifice-size'];
@@ -63,7 +29,9 @@ $outputs = shell_exec($DAFD_location . "venv/bin/python3 " . $DAFD_location . "D
 $arr_outs = explode("|",explode("BEGIN:",$outputs)[1]);
 ?>
 
-<div>
+
+<div style="text-align: center">
+<div class="div_float">
     <h1>Forward Model Inputs</h1>
 
     Orifice Width (um):
@@ -119,7 +87,7 @@ $arr_outs = explode("|",explode("BEGIN:",$outputs)[1]);
 <br>
 <br>
 
-<div>
+<div class="div_float">
     <h1>Forward Model Results</h1>
 
     Generation Rate (Hz):
@@ -145,7 +113,7 @@ $arr_outs = explode("|",explode("BEGIN:",$outputs)[1]);
 <br>
 <br>
 
-<div>
+<div class="div_float">
     <h1>Calculated Values</h1>
 
     Oil Flow Rate (ml/hr):
@@ -167,5 +135,4 @@ $arr_outs = explode("|",explode("BEGIN:",$outputs)[1]);
     <br>
 
 </div>
-
-</body>
+</div>
