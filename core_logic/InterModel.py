@@ -226,7 +226,7 @@ class InterModel:
 			if "generation_rate" in desired_val_dict:
 				if desired_val_dict["generation_rate"] > 100:
 					pred_rate_error = abs(desired_val_dict["generation_rate"] - prediction["generation_rate"]) / desired_val_dict["generation_rate"]
-					exp_rate_error = abs(desired_val_dict["generation_rate"] - self.MH.all_dat[closest_index]["generation_rate"]) / self.MH.all_dat[closest_index]["generation_rate"]
+					exp_rate_error = abs(desired_val_dict["generation_rate"] - self.MH.all_dat[closest_index]["generation_rate"]) / desired_val_dict["generation_rate"]
 					if pred_rate_error > 0.15 or exp_rate_error > 0.15:
 						should_skip_optim_rate = False
 				else:
