@@ -249,7 +249,7 @@ class InterModel:
 				if pred_size_error > 10 or inferred_size_error > 10 or exp_size_error > 5:
 					should_skip_optim_size = False
 
-			if should_skip_optim_rate and should_skip_optim_size and should_skip_optim_constraints:
+			if should_skip_optim_rate and should_skip_optim_size and should_skip_optim_constraints and False:
 				results = {x: self.MH.all_dat[closest_index][x] for x in self.MH.input_headers}
 				results["point_source"] = "Experimental"
 				print(results)
@@ -271,75 +271,26 @@ class InterModel:
 			f.write("Desired outputs:"+des_rate+","+des_size+"\n")
 			f.write(",".join(self.MH.input_headers) + ",regime,generation_rate,droplet_size,cost_function\n")
 
-		pos = start_pos
-		self.callback_func(pos)
+		options = {'eps':1e-6,'disp':True}
 
-		self.correct_by_constraints(pos,norm_constraints)
+		self.callback_func(start_pos)
 
-		loss = self.model_error(pos)
-		samplesize = 1e-3
-		stepsize = 1e-2
-		ftol = 1e-9
+		#Minimization function
+		res = minimize(self.model_error,
+				start_pos, 
+				method='SLSQP',
+				options=options,
+				callback=self.callback_func,
+				bounds = tuple([(norm_constraints[x][0],norm_constraints[x][1])
+								if x in norm_constraints
+								else (self.MH.ranges_dict_normalized[x][0],self.MH.ranges_dict_normalized[x][1])
+								for x in self.MH.input_headers]))
+		self.callback_func(res["x"])
 
-		#for i in range(5000):
-		#	new_pos = [x for x in pos]
-		#	new_loss = loss
-		#	for index, val in enumerate(pos):
-		#		copy = [x for x in pos]
-		#		copy[index] = val+samplesize
-		#		self.correct_by_constraints(copy,norm_constraints)
-		#		sampled_derivative = (loss - self.model_error(copy))/samplesize
-		#		new_pos[index] = val + sampled_derivative*stepsize
-
-		#	new_loss = self.model_error(new_pos)
-
-
-
-
-		#	if loss - new_loss < ftol and loss > new_loss:
-		#		print(loss)
-		#		print(new_loss)
-		#		break
-
-		#	pos = new_pos
-		#	loss = new_loss
-
-		#	self.callback_func(pos)
-
-		for i in range(5000):
-			new_pos = pos
-			new_loss = loss
-			for index, val in enumerate(pos):
-				copy = [x for x in pos]
-				copy[index] = val+stepsize
-				self.correct_by_constraints(copy,norm_constraints)
-				error = self.model_error(copy)
-				if error < new_loss:
-					new_pos = copy
-					new_loss = error
-
-				copy = [x for x in pos]
-				copy[index] = val-stepsize
-				self.correct_by_constraints(copy,norm_constraints)
-				error = self.model_error(copy)
-				if error < new_loss:
-					new_pos = copy
-					new_loss = error
-
-			if loss - new_loss < ftol:
-				print(loss)
-				print(new_loss)
-				break
-
-			pos = new_pos
-			loss = new_loss
-
-			self.callback_func(pos)
-
-		self.last_point = pos
+		self.last_point = [res["x"][i] for i in range(len(res["x"]))]
 
 		#Denormalize results
-		results = {x: self.MH.denormalize(pos[i], x) for i, x in enumerate(self.MH.input_headers)}
+		results = {x: self.MH.denormalize(res["x"][i], x) for i, x in enumerate(self.MH.input_headers)}
 		prediction = self.fwd_model.predict([results[x] for x in self.MH.input_headers])
 		print("Final Suggestions")
 		print(",".join(self.MH.input_headers) + "," + "desired_size" + "," + "predicted_generation_rate" + "," + "predicted_droplet_size")
