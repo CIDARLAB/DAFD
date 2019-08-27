@@ -23,11 +23,13 @@ class Regressor:
 
 	regression_model = None
 
+
 	def __init__(self, output_name, regime):
 		self.MH = ModelHelper.get_instance() # type: ModelHelper
+		self.regime = regime
 
 		regime_indices = self.MH.regime_indices[regime]
-		regime_feature_data = [self.MH.train_features_dat[x] for x in regime_indices]
+		regime_feature_data = [self.MH.train_features_dat_regnorm[x] for x in regime_indices]
 		regime_label_data = [self.MH.train_labels_dat[output_name][x] for x in regime_indices]
 
 		print("Regression model " + output_name + str(regime))
@@ -47,15 +49,24 @@ class Regressor:
 			self.regression_model.load_model(output_name, regime)
 		else:
 			print("Training Regressor")
-			print("All data points: " + str(len(self.MH.train_features_dat)))
+			print("All data points: " + str(len(self.MH.train_features_dat_regnorm)))
 			print("Train points: " + str(len(regime_indices)))
 			self.regression_model.train_model(output_name, regime, regime_feature_data, regime_label_data)
 
 		train_features = np.stack(regime_feature_data)
 		train_labels = np.stack(regime_label_data)
+		#print(",".join(self.MH.input_headers) + ",label,prediction")
+		#for i,label in enumerate(list(train_labels)):
+		#	print(",".join(list(map(str,list(train_features[i])))) + "," + str(label) + "," + str(self.regression_model.regression_model.predict(train_features)[i][0]))
+		#print(train_labels)
+		#print()
+		#print(train_features)
 		print("R square (R^2) for Train:                 %f" % sklearn.metrics.r2_score(train_labels, self.regression_model.regression_model.predict(train_features)))
 		print()
 
 
 	def predict(self,features):
+		# We expect the features to be a whole data normalized set, so denormalize and then normalize with respect to regime
+		features = self.MH.denormalize_set(features)
+		features = self.MH.normalize_set(features,"_regime"+str(self.regime))
 		return self.regression_model.predict(features)

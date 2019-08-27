@@ -71,7 +71,7 @@ class InterModel:
 				if exp_error > max_drop_exp_error:
 					continue
 
-			feat_point = self.MH.train_features_dat[i]
+			feat_point = self.MH.train_features_dat_wholenorm[i]
 			prediction = self.fwd_model.predict(feat_point, normalized=True)
 
 			if prediction["regime"] != self.MH.train_regime_dat[i]:

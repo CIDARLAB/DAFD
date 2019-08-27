@@ -3,6 +3,7 @@ import csv
 import sklearn
 import numpy as np
 
+always_use_whole_dataset_normalization = True # Set to true to use whole data normalization
 
 class ModelHelper:
 	"""
@@ -13,17 +14,18 @@ class ModelHelper:
 	RESOURCE_PATH = "experimental_data/ExperimentalResults_888.csv"		# Experimental data location
 	NUM_OUTPUTS = 2													# Droplet Generation Rate + Droplet Size
 
-	instance = None				# Singleton
-	input_headers = []			# Feature names (orifice size, aspect ratio, etc...)
-	output_headers = []			# Output names (droplet size, generation rate)
-	all_dat = []				# Raw experimental data
-	train_data_size = 0			# Number of data points in the training set
-	train_features_dat = []		# Normalized and reduced features from all_dat
-	train_labels_dat = {}		# Normalized and reduced labels from all_dat
-	train_regime_dat = []		# Regime labels from all_dat
-	regime_indices = {}			# Indices of the TRAIN DATA (not the all_dat) that belong to each regime
-	ranges_dict = {} 			# Dictionary of ranges for each ranges variable
-	ranges_dict_normalized = {} 			# Dictionary of ranges for each ranges variable
+	instance = None						# Singleton
+	input_headers = []					# Feature names (orifice size, aspect ratio, etc...)
+	output_headers = []					# Output names (droplet size, generation rate)
+	all_dat = []						# Raw experimental data
+	train_data_size = 0					# Number of data points in the training set
+	train_features_dat_regnorm = []		# Normalized and reduced features from all_dat (regime normalized)
+	train_features_dat_wholenorm = []	# Normalized and reduced features from all_dat (whole dataset normalized)
+	train_labels_dat = {}				# Labels from all_dat
+	train_regime_dat = []				# Regime labels from all_dat
+	regime_indices = {}					# Indices of the TRAIN DATA (not the all_dat) that belong to each regime
+	ranges_dict = {} 					# Dictionary of ranges for each ranges variable
+	ranges_dict_normalized = {} 		# Dictionary of ranges for each ranges variable
 	transform_dict = {}			# Dictionary of sklearn transform objects for normalization
 
 	def __init__(self):
@@ -70,67 +72,91 @@ class ModelHelper:
 			# Init values dict
 			for head in headers:
 				values_dict[head] = []
+				values_dict[head+"_regime1"] = []
+				values_dict[head+"_regime2"] = []
 
 			# Get save the info of each row to var_dat and values_dict
 			for row in lines:
 				self.all_dat.append({headers[x]: float(row[x]) for x in range(len(headers))})
 				for head_i in range(len(headers)):
 					values_dict[headers[head_i]].append(float(row[head_i]))
+				if float(row[9]) == 1:
+					for head_i in range(len(headers)):
+						values_dict[headers[head_i]+"_regime1"].append(float(row[head_i]))
+				else:
+					for head_i in range(len(headers)):
+						values_dict[headers[head_i]+"_regime2"].append(float(row[head_i]))
+
 
 		# Find the min and max to each data type
 		for head in headers:
 			self.transform_dict[head] = sklearn.preprocessing.StandardScaler()
 			self.transform_dict[head].fit(np.array(values_dict[head]).reshape(-1,1))
+
+			self.transform_dict[head+"_regime1"] = sklearn.preprocessing.StandardScaler()
+			self.transform_dict[head+"_regime1"].fit(np.array(values_dict[head+"_regime1"]).reshape(-1,1))
+
+			self.transform_dict[head+"_regime2"] = sklearn.preprocessing.StandardScaler()
+			self.transform_dict[head+"_regime2"].fit(np.array(values_dict[head+"_regime2"]).reshape(-1,1))
+
 			self.ranges_dict[head] = (min(values_dict[head]), max(values_dict[head]))
 			self.ranges_dict_normalized[head] = (self.transform_dict[head].transform([[min(values_dict[head])]])[0][0],
 									  self.transform_dict[head].transform([[max(values_dict[head])]])[0][0])
 
-	def normalize_set(self, values):
+	def normalize_set(self, values, regime=""):
 		""" Normalizes a set of features
 		Args:
 			values: list of features to be normalized (same order as input_headers)
+			regime: regime1 or regime2 (nothing for whole-dataset normalization)
 
 		Returns list of normalized features in the same order as input_headers
 		"""
 		ret_list = []
 		for i, header in enumerate(self.input_headers):
-			ret_list.append(self.normalize(values[i], header))
+			ret_list.append(self.normalize(values[i], header, regime))
 
 		return ret_list
 
-	def denormalize_set(self, values):
+	def denormalize_set(self, values,regime=""):
 		""" Denormalizes a set of features
 		Args:
 			values: list of features to be denormalized (same order as input_headers)
+			regime: regime1 or regime2 (nothing for whole-dataset normalization)
 
 		Returns list of denormalized features in the same order as input_headers
 		"""
 		ret_list = []
 		for i, header in enumerate(self.input_headers):
-			ret_list.append(self.denormalize(values[i], header))
+			ret_list.append(self.denormalize(values[i], header, regime))
 
 		return ret_list
 
-	def normalize(self, value, inType):
+	def normalize(self, value, inType,regime=""):
 		"""Return min max normalization of a variable
 		Args:
 			value: Value to be normalized
 			inType: The type of the value (orifice size, aspect ratio, etc) to be normalized
+			regime: regime1 or regime2 (nothing for whole-dataset normalization)
 
 		Returns 0-1 normalization of value with 0 being the min and 1 being the max
 		"""
-		return self.transform_dict[inType].transform([[value]])[0][0]
+		if always_use_whole_dataset_normalization:
+			regime=""
+		return self.transform_dict[inType+regime].transform([[value]])[0][0]
 
 
-	def denormalize(self, value, inType):
+	def denormalize(self, value, inType,regime=""):
 		"""Return actual of a value of a normalized variable
 		Args:
 			value: Value to be corrected
 			inType: The type of the value (orifice size, aspect ratio, etc) to be normalized
+			regime: regime1 or regime2 (nothing for whole-dataset normalization)
 
 		Returns actual value of given 0-1 normalized value
 		"""
-		return self.transform_dict[inType].inverse_transform([[value]])[0][0]
+		if always_use_whole_dataset_normalization:
+			regime=""
+		return self.transform_dict[inType+regime].inverse_transform([[value]])[0][0]
 
 	def make_train_data(self, indices=-1):
 		""" Make training data from test data
@@ -140,24 +166,27 @@ class ModelHelper:
 		if indices == -1:
 			indices = [x for x in range(len(self.all_dat))]
 
-		self.train_features_dat = []
+		self.train_features_dat_regnorm = []
+		self.train_features_dat_wholenorm = []
 		for header in self.output_headers:
 			self.train_labels_dat[header] = []
 		self.train_regime_dat = []
 		self.regime_indices = {}
 
 		for i in indices:
-			normal_features = [self.normalize(self.all_dat[i][x], x) for x in self.input_headers]
-			self.train_features_dat.append(normal_features)
+			regime_label = int(self.all_dat[i]["regime"])
+			normal_features_regnorm = [self.normalize(self.all_dat[i][x], x, regime="_regime"+str(regime_label)) for x in self.input_headers]
+			normal_features_wholenorm = [self.normalize(self.all_dat[i][x], x, regime="") for x in self.input_headers]
+			self.train_features_dat_regnorm.append(normal_features_regnorm)
+			self.train_features_dat_wholenorm.append(normal_features_wholenorm)
 			for header in self.output_headers:
 				self.train_labels_dat[header].append(self.all_dat[i][header])
-			regime_label = int(self.all_dat[i]["regime"])
 			self.train_regime_dat.append(regime_label)
 			if regime_label not in self.regime_indices:
 				self.regime_indices[regime_label] = []
-			self.regime_indices[regime_label].append(len(self.train_features_dat)-1)
+			self.regime_indices[regime_label].append(len(self.train_features_dat_wholenorm)-1)
 
-		self.train_data_size = len(self.train_features_dat)
+		self.train_data_size = len(self.train_features_dat_wholenorm)
 
 
 	def make_test_data(self, indices=-1):
@@ -168,17 +197,20 @@ class ModelHelper:
 		if indices == -1:
 			indices = [x for x in range(len(self.all_dat))]
 
-		self.test_features_dat = []
+		self.test_features_dat_regnorm = []
+		self.test_features_dat_wholenorm = []
 		self.test_labels_dat = {}
 		self.test_regime_dat = []
 		for header in self.output_headers:
 			self.test_labels_dat[header] = []
 
 		for i in indices:
-			normal_features = [self.normalize(self.all_dat[i][x], x) for x in self.input_headers]
 			regime_label = int(self.all_dat[i]["regime"])
+			normal_features_regnorm = [self.normalize(self.all_dat[i][x], x, regime="_regime"+str(regime_label)) for x in self.input_headers]
+			normal_features_wholenorm = [self.normalize(self.all_dat[i][x], x, regime="_regime"+str(regime_label)) for x in self.input_headers]
 			self.test_regime_dat.append(regime_label)
-			self.test_features_dat.append(normal_features)
+			self.test_features_dat_regnorm.append(normal_features_regnorm)
+			self.test_features_dat_wholenorm.append(normal_features_wholenorm)
 			for header in self.output_headers:
 				self.test_labels_dat[header].append(self.all_dat[i][header])
 

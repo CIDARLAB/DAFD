@@ -9,7 +9,7 @@ class ForwardModelTester:
 		self.MH = ModelHelper.get_instance() # type: ModelHelper
 
 	def train(self):
-		data_size = len(self.MH.train_features_dat)
+		data_size = len(self.MH.train_features_dat_wholenorm)
 		self.MH.make_train_data([x for x in range(data_size)])
 		self.forward_model = ForwardModel()
 
@@ -338,4 +338,5 @@ tester = ForwardModelTester()
 #tester.hold_out_classifier(0.2)
 #tester.hold_out(0.2)
 tester.train()
+#tester.cross_validate_regime(folds=20)
 

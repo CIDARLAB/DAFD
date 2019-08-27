@@ -14,7 +14,7 @@ class RegimeClassifier:
 	neuralnet = None
 
 	def __init__(self):
-		self.MH = ModelHelper.get_instance()
+		self.MH = ModelHelper.get_instance() # type: ModelHelper
 		self.neuralnet = NeuralNetModel_regime()
 		print("regime classifier")
 		if load_model:
@@ -22,10 +22,10 @@ class RegimeClassifier:
 			self.neuralnet.load_model()
 		else:
 			print("Training classifier")
-			print("Data points: " + str(len(self.MH.train_features_dat)))
-			self.neuralnet.train_model(self.MH.train_features_dat, self.MH.train_regime_dat)
+			print("Data points: " + str(len(self.MH.train_features_dat_wholenorm)))
+			self.neuralnet.train_model(self.MH.train_features_dat_wholenorm, self.MH.train_regime_dat)
 
-		train_features = np.stack(self.MH.train_features_dat)
+		train_features = np.stack(self.MH.train_features_dat_wholenorm)
 		train_labels = np.stack(self.MH.train_regime_dat)
 		print("Train accuracy: " + str(sklearn.metrics.accuracy_score(train_labels-1,self.neuralnet.classifier_model.predict_classes(train_features))))
 		print()
