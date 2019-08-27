@@ -281,30 +281,12 @@ class InterModel:
 		stepsize = 1e-2
 		ftol = 1e-9
 
-		#for i in range(5000):
-		#	new_pos = [x for x in pos]
-		#	new_loss = loss
-		#	for index, val in enumerate(pos):
-		#		copy = [x for x in pos]
-		#		copy[index] = val+samplesize
-		#		self.correct_by_constraints(copy,norm_constraints)
-		#		sampled_derivative = (loss - self.model_error(copy))/samplesize
-		#		new_pos[index] = val + sampled_derivative*stepsize
-
-		#	new_loss = self.model_error(new_pos)
-
-
-
-
-		#	if loss - new_loss < ftol and loss > new_loss:
-		#		print(loss)
-		#		print(new_loss)
-		#		break
-
-		#	pos = new_pos
-		#	loss = new_loss
-
-		#	self.callback_func(pos)
+		with open("AlgorithmProcess.csv","w") as f:
+			double_headers = []
+			for header in self.MH.input_headers:
+				double_headers.append(header+"_pos")
+				double_headers.append(header+"_neg")
+			f.write(",".join(double_headers) + "\n")
 
 		for i in range(5000):
 			new_pos = pos
@@ -318,6 +300,9 @@ class InterModel:
 					new_pos = copy
 					new_loss = error
 
+				with open("AlgorithmProcess.csv","a") as f:
+					f.write(str(error)+",")
+
 				copy = [x for x in pos]
 				copy[index] = val-stepsize
 				self.correct_by_constraints(copy,norm_constraints)
@@ -325,6 +310,12 @@ class InterModel:
 				if error < new_loss:
 					new_pos = copy
 					new_loss = error
+
+				with open("AlgorithmProcess.csv","a") as f:
+					f.write(str(error)+",")
+
+			with open("AlgorithmProcess.csv","a") as f:
+				f.write("\n")
 
 			if loss - new_loss < ftol:
 				print(loss)
