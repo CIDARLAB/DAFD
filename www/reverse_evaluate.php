@@ -21,7 +21,7 @@ $constraint_names = array("orifice_size", "aspect_ratio", "expansion_ratio", "no
 $desired_vals = array($generation_rate, $droplet_size);
 $desired_vals_names = array("generation_rate","droplet_size");
 
-$DAFD_location = "/home/chris/Work/DAFD/DAFD/";
+$DAFD_location = "/home/dafdadmin/DAFD/";
 $file = $DAFD_location . "cmd_inputs.txt";
 file_put_contents($file, "CONSTRAINTS\n");
 
@@ -62,56 +62,59 @@ $arr_outs = explode("|",explode("BEGIN:",$outputs)[1]);
 
 <div style="text-align: center">
 <div class="div_float">
-    <h1>Suggested Parameters</h1>
+    <h1>Optimal Design Parameters</h1>
 
+    <h2>Geometric Parameters</h2>
     Orifice Width (um):
     <?php
-    echo $arr_outs[0];
+    echo round(floatval($arr_outs[0]), 2);
     ?>
     <br>
 
-    Aspect Ratio (Channel Depth Divided By Orifice Width):
+    Channel Depth (um):
     <?php
-    echo $arr_outs[1];
+    echo round(floatval($arr_outs[1]) * floatval($arr_outs[0]), 2);
     ?>
     <br>
 
-    Expansion Ratio (Outlet Channel Width Divided By Orifice Width):
+    Outlet Channel Width (um):
     <?php
-    echo $arr_outs[2];
+    echo round(floatval($arr_outs[2]) * floatval($arr_outs[0]), 2);
     ?>
     <br>
 
-    Normalized Orifice Length (Orifice Length Divided By Orifice Width):
+    Orifice Length (um):
     <?php
-    echo $arr_outs[3];
+    echo round(floatval($arr_outs[3]) * floatval($arr_outs[0]), 2);
     ?>
     <br>
 
-    Normalized Water Inlet Width (Water Inlet Width Divided By Orifice Width):
+    Water Inlet Width (um):
     <?php
-    echo $arr_outs[4];
+    echo round(floatval($arr_outs[4]) * floatval($arr_outs[0]), 2);
     ?>
     <br>
 
-    Normalized Oil Inlet Width (Oil Inlet Width Divided By Orifice Width):
+    Oil Inlet Width (um):
     <?php
-    echo $arr_outs[5];
+    echo round(floatval($arr_outs[5]) * floatval($arr_outs[0]), 2);
     ?>
     <br>
 
+    <h2>Flow Conditions</h2>
     Flow Rate Ratio (Oil Flow Rate Divided By Water Flow Rate):
     <?php
-    echo $arr_outs[6];
+    echo round(floatval($arr_outs[6]), 2);
     ?>
     <br>
 
     Capillary Number:
     <?php
-    echo $arr_outs[7];
+    echo round(floatval($arr_outs[7]), 3);
     ?>
     <br>
 
+    <h2>Optimization Strategy</h2>
     Point Source:
     <?php
     echo $arr_outs[8];
@@ -124,17 +127,23 @@ $arr_outs = explode("|",explode("BEGIN:",$outputs)[1]);
 <br>
 
 <div class="div_float">
-    <h1>Predicted Outputs</h1>
+    <h1>Predicted Performance</h1>
 
     Generation Rate (Hz):
     <?php
-    echo $arr_outs[9];
+    echo round(floatval($arr_outs[9]), 3);
     ?>
     <br>
 
-    Droplet Size (um):
+    Droplet Diameter (um):
     <?php
-    echo $arr_outs[10];
+    echo round(floatval($arr_outs[10]), 3);
+    ?>
+    <br>
+
+    Inferred Droplet Diameter (um):
+    <?php
+    echo round(floatval($arr_outs[14]), 3);
     ?>
     <br>
 
@@ -143,33 +152,39 @@ $arr_outs = explode("|",explode("BEGIN:",$outputs)[1]);
     echo $arr_outs[11];
     ?>
     <br>
-
 </div>
 
 <br>
 <br>
 
 <div class="div_float">
-    <h1>Calculated Values</h1>
+    <h1>Flow Conditions</h1>
 
 
     Oil Flow Rate (ml/hr):
     <?php
-    echo $arr_outs[12];
+    echo round(floatval($arr_outs[12]), 3);
     ?>
     <br>
 
     Water Flow Rate (ul/min):
     <?php
-    echo $arr_outs[13];
-    ?>
-    <br>
-
-    Droplet Inferred Size (um):
-    <?php
-    echo $arr_outs[14];
+    echo round(floatval($arr_outs[13]), 3);
     ?>
     <br>
 </div>
+
+<br>
+<br>
+
+<div class="div_float">
+    <h1>Single Cell Encapsulation</h1>
+    Lambda (ratio of cells to droplets): <input type="text" id="lambda" value="0.1" onchange="calculateConc()" onload="calculateConc()"><br>
+    <input type="text" id="water_flow_rate" value="<?php echo round(floatval($arr_outs[13]), 3);?>" hidden>
+    <input type="text" id="generation_rate" value="<?php echo round(floatval($arr_outs[9]), 3);?>" hidden>
+    Cell concentration (cells per ul) : <label type="text" id="cellconc" >1</label><br>
+    <br>
+</div>
+
 </div>
 

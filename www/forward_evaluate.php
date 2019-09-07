@@ -13,7 +13,7 @@ $constraints = array($orifice_size, $aspect_ratio, $expansion_ratio, $normalized
 $constraint_names = array("orifice_size", "aspect_ratio", "expansion_ratio", "normalized_orifice_length",
 			"normalized_water_inlet", "normalized_oil_inlet", "flow_rate_ratio", "capillary_number");
 
-$DAFD_location = "/home/chris/Work/DAFD/DAFD/";
+$DAFD_location = "/home/dafdadmin/DAFD/";
 $file = $DAFD_location . "cmd_inputs.txt";
 file_put_contents($file, "FORWARD\n");
 

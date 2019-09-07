@@ -46,7 +46,7 @@
     }
 
     .left_column {
-        width: 200px;
+        width: 300px;
         background-color: white;
         float: left;
         min-height:100%;
@@ -63,12 +63,12 @@
         padding-top: 15px;
         padding-bottom: 15px;
         margin-top: 100px;
-        margin-left: 200px;
+        margin-left: 300px;
     }
 
     ul{
         padding-inline-start: 0;
-        font-size: 15pt;
+        font-size: 12pt;
         margin-left: 10px;
         list-style-type:none;
     }
@@ -100,6 +100,16 @@
 </head>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script>
+      function calculateConc(){
+	console.log("HERE");
+                if (isNaN(parseFloat(document.getElementById("lambda").value)))
+                {
+                        return;
+                }
+                document.getElementById("cellconc").innerHTML = parseFloat(document.getElementById("generation_rate").value) * parseFloat(document.getElementById("lambda").value) * 60 / parseFloat(document.getElementById("water_flow_rate").value);
+        }
+    </script>
     <script type="text/javascript">
         let lastLink="home_link";
 
@@ -113,28 +123,6 @@
                 content.innerHTML = `
                 <div style="text-align: center">
                     <h1>Design Automation for Fluid Dynamics</h1>
-
-                        <div class="div_float" style="width: 50%">
-                            <img src="MicrofluidicChip.png" style="width: 100%"/>
-                        </div>
-
-                        <div class="div_float" style="width: 50%">
-                            <h2>Abstract</h2>
-                            <p style="text-align: left">
-                               Microfluidics is the science of handling liquids inside sub-millimeter microchannels at nano-liter
-                               and pico-liter scales. The volume reduction inherent to microfluidics enables increased resolution,
-                               sensitivity, and throughput while reducing the reagent cost significantly. Despite the obvious
-                               benefits, microfluidics have not been widely adopted into normal life-science research workflows.
-                               The high cost of fabricating microfluidic devices through standard photolithography and the difficulty
-                               of designing a microfluidic geometry to meet the desired performance might deter some researchers from
-                               using these devices.</p>
-                            <br>
-                            <p style="text-align: left">
-                                DAFD attempts to combat the time-intensive work of designing microfluidic devices by automatically
-                                suggesting chip geometries for droplet generators that will make your microfluidic experiments more
-                                accurate, less costly, and easier to design.</p>
-                        </div>
-
                         <div class="div_float" style="width: 50%" id="designauto_div">
                             <img src="DesignAutomation.png" style="margin-bottom:10px; width: 90%">
                             <p style="text-align: left">We have developed a faster way to design microfluidic droplet generators
@@ -143,33 +131,9 @@
                             that will realize those values. You can also add in geometry constraints for the model. Click on this
                             panel for more information.</p>
                         </div>
-
-                        <div class="div_float" style="width: 50%" id="lowcost_div">
-                            <img src="LowCostMicrofab.png" style="margin-bottom:10px; width: 90%">
-                            <p style="text-align: left">In order to develop the dataset on which our model was based, we needed to
-                            fabricate enough chips to cover our large design space. Fortunately, CIDAR lab has developed a low-cost
-                            rapid prototyping method that enables fabrication of microfluidic devices in less than an hour, with
-                            each device costing less than $10. To find out more about this, click on this panel</p>
-                        </div>
-
-                        <div class="div_float" style="width: 50%" id="dropletmf_div">
-                            <img src="DropletBasedMicrofluidics.png" style="margin-bottom:10px; width: 90%">
-                            <p style="text-align: left">To find out more about droplet-based microfluidics in general, click this
-                            panel.</p>
-                        </div>
-
-                        <div class="div_float" style="width: 50%" id="singlecell_div">
-                            <img src="SingleCellEncapsulation.png" style="margin-bottom:10px; width: 90%">
-                            <p style="text-align: left">For a practical example of the types of experiments that this tool can help
-                            you design, check out our page on single-cell encapsulation which can be used for single-cell analysis
-                            experiments.</p>
-                        </div>
                     </div>
                   `;
                 document.getElementById("designauto_div").onclick = function(){ document.getElementById("designauto_link").click();};
-                document.getElementById("lowcost_div").onclick = function(){ document.getElementById("lowcost_link").click();};
-                document.getElementById("dropletmf_div").onclick = function(){ document.getElementById("dropletmf_link").click();};
-                document.getElementById("singlecell_div").onclick = function(){ document.getElementById("singlecell_link").click();};
                 return false;
             };
             document.getElementById("home_link").click();
@@ -301,7 +265,7 @@
 
                             <p style="text-align: left">
                                 On the left sidebar, click on "Help" for more information about using our model. You can also click
-                                on "Reverse Model" or "Forward Model" to dive right in to using it.
+                                on "Design Automation of Droplet Generators" or "Performance Prediction" to dive right in to using it.
                             </p>
                         </div>
                     </div>
@@ -357,10 +321,10 @@
                             <div class="div_float">
                                 <h1>Desired Values</h1>
 
-                                <label for="generation-rate">Generation Rate (Hz) [5.09-497.65]</label>
+                                <label for="generation-rate">Generation Rate (Hz) [5-500]</label>
                                 <input name="generation-rate" id="generation-rate"><br>
 
-                                <label for="droplet-size">Droplet Size (um) [28.11-246.51]</label>
+                                <label for="droplet-size">Droplet Size (um) [25-250]</label>
                                 <input name="droplet-size" id="droplet-size"><br>
                             </div>
 
@@ -432,7 +396,7 @@
                 const content = document.getElementById("content");
                 content.innerHTML = `
                     <h1>Help</h1>
-                    <h2>Reverse Model</h2>
+                    <h2>Design Automation</h2>
                     <p>
                         You want to make a droplet generator that produces droplets at some size and at some rate. All you need to do
                         is plug in the size (in &micro;m) and the generation rate (in Hz) into the model. Click submit, and you should get
@@ -450,7 +414,7 @@
                     </p>
                     <br>
                     <br>
-                    <h2>Forward Model</h2>
+                    <h2>Performance Prediction</h2>
                     <p>
                         You have dimensions for a chip geometry and you want to predict the generation rate and average droplet size
                         of the produced droplets. Enter in all your values into the fields given. Remember that some of the fields
@@ -476,10 +440,58 @@
 
         function submitReverseModelForm(formId)
         {
+            let text_vals = [
+              $('#orifice-size').val(),
+              $('#aspect-ratio').val(),
+              $('#expansion-ratio').val(),
+              $('#normalized-orifice-length').val(),
+              $('#normalized-water-inlet').val(),
+              $('#normalized-oil-inlet').val(),
+              $('#flow-rate-ratio').val(),
+              $('#capillary-number').val(),
+              $('#regime').val(),
+              $('#generation-rate').val(),
+              $('#droplet-size').val()
+            ];
+
+            let val_limits = [[75,175],[1,3],[2,6],[1,3],[2,4],[2,4],[2,22],[0.03,1.06],[1,2],[5,500],[25,250]];
+            let warn = false;
+            for (let i = 0; i < text_vals.length; i ++)
+            {
+               if (text_vals[i] != "")
+               {
+                  if (isNaN(parseFloat(text_vals[i])))
+                  {
+                      window.alert("Error: All your inputs must be decimal numbers");
+                      return false;
+		  }
+                  
+                  if ((parseFloat(text_vals[i]) < val_limits[i][0] || parseFloat(text_vals[i]) > val_limits[i][1]) && !warn)
+                  {
+                      window.alert("Warning: Some values are out of scope. DAFD may not be accurate");
+                      warn = true;
+                  }
+               }
+            }
+            
+            if (text_vals[8] != "" && text_vals[8] != "1" && text_vals[8] != "2")
+            {
+               window.alert("Error: The regime must be exactly either 1 or 2");
+               return false;
+            }
+
+            if (text_vals[9] == "" && text_vals[10] == "")
+            {
+               window.alert("Error: Either one of generation rate or droplet size must not be null");
+               return false;
+            }
+
             let formData = $(formId).serialize();
             const content = document.getElementById("content");
             content.innerHTML = `
             <h1>Your results are being computed</h1>
+            <img src="loading.gif"></img>
+            <br /><iframe src="https://mosaically.com/embed/063bcfd1-85e7-4c23-bd73-bf8a89906361" scrolling="no" width="100%" height="480" frameborder="0" allowfullscreen></iframe><!--REMOVING THE FOLLOWING CREDIT IS A VIOLATION OF YOUR TERMS OF USE--><br /><small>Photo mosaic by: <a href="https://mosaically.com/publicguest">publicguest</a> @ <a href="https://mosaically.com">Mosaically</a></small>
             `;
 
             $.ajax({
@@ -489,6 +501,7 @@
                 success:function(response) {
                     const content = document.getElementById("content");
                     content.innerHTML = response;
+                    calculateConc();
                 }
             });
         }
@@ -523,18 +536,19 @@
     </div>
     <div class="left_column">
         <ul>
-            <li> <a id="home_link" href="#" style="text-shadow: 2px 2px 3px blue;">Home</a>
-                <ul style="font-size: 12pt; list-style-type: circle">
-                    <li> <a id="designauto_link" href="#">Design Automation</a>
-                    <li> <a id="lowcost_link" href="#">Low Cost Fabrication</a>
-                    <li> <a id="dropletmf_link" href="#">Droplet-Based Microfluidics</a>
-                    <li> <a id="singlecell_link" href="#">Single-Cell Encapsulation</a>
-                </ul>
-            </li>
-            <li> <a id="reverse_link" href="#">Reverse Model</a> </li>
-            <li> <a id="forward_link" href="#">Forward Model</a> </li>
+            <li> <a id="home_link" href="#" style="text-shadow: 2px 2px 3px blue;">Home</a> </li>
+            <li> <a id="reverse_link" href="#">Design Automation of Droplet Generators</a> </li>
+            <li> <a id="forward_link" href="#">Performance Prediction of Droplet Generators</a> </li>
+            <li> <a id="neural_optmizer_link" href="http://ec2-54-189-150-77.us-west-2.compute.amazonaws.com:5000">DAFD Neural Optimizer</a> </li>
+	    <li> <a id="designauto_link" href="#">Learn More About DAFD</a> </li>
+	    <li> <a id="lowcost_link" href="#">Learn More About Low Cost Fabrication</a> </li>
+	    <li> <a id="dropletmf_link" href="#">Learn More About Droplet-Based Microfluidics</a> </li>
+	    <li> <a id="singlecell_link" href="#">Learn More About Single-Cell Encapsulation</a> </li>
+            <li> <a id="tips_link" href="#">Tips and Tricks</a> </li>
+            <li> <a id="meet_link" href="#">Meet the Team</a> </li>
+            <li> <a id="collab_link" href="#">Collaborate with Us</a> </li>
+            <li> <a id="attributions_link" href="#">Publications</a> </li>
             <li> <a id="help_link" href="#">Help</a> </li>
-            <li> <a id="attributions_link" href="#">Cite us</a> </li>
         </ul>
     </div>
     <div class="right_column" id="content">
