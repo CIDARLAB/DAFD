@@ -14,7 +14,7 @@ from helper_scripts.ModelHelper import ModelHelper
 import numpy as np
 import sklearn.metrics
 
-load_model = True	# Load the file from disk
+load_model = False	# Load the file from disk
 
 class Regressor:
 	"""

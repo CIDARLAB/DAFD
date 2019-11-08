@@ -4,7 +4,7 @@ from helper_scripts.ModelHelper import ModelHelper
 import sklearn.metrics
 import numpy as np
 
-load_model = True	# Load the file from disk
+load_model = False	# Load the file from disk
 
 class RegimeClassifier:
 	"""
