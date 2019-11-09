@@ -1,4 +1,4 @@
-"""A graphical interface to our interpolation modeller"""
+"""A graphical interface to DAFD that does not require website hosting"""
 from core_logic.ForwardModel import ForwardModel
 from core_logic.InterModel import InterModel
 from helper_scripts.ModelHelper import ModelHelper
@@ -29,7 +29,7 @@ class DAFD_GUI:
 		panel.configure(background="white")
 		self.root.configure(background="white")
 
-		#Pack all input constraint elements together
+		# Pack all input constraint elements together
 		inputs_frame = tkinter.Frame(self.root)
 		inputs_frame.pack(side="top")
 		inputs_frame.configure(background="white")
@@ -67,7 +67,7 @@ class DAFD_GUI:
 		regime_entry.configure(background="white")
 		self.entries_dict["regime"] = regime_entry
 
-		#Pack the desired output elements together
+		# Pack the desired output elements together
 		outputs_frame = tkinter.Frame(self.root,pady=20)
 		outputs_frame.pack(side="top")
 		outputs_frame.configure(background="white")
@@ -93,7 +93,7 @@ class DAFD_GUI:
 
 
 
-		#Pack the results together
+		# Pack the results together
 		results_frame = tkinter.Frame(self.root,pady=20)
 		results_frame.pack(side="top")
 		results_frame.configure(background="white")
@@ -106,33 +106,37 @@ class DAFD_GUI:
 		self.results_label.configure(background="white")
 
 		
-		#Start everything
+		# Start GUI
 		self.root.mainloop()
 
 
 	def runInterp(self):
-		"""Predict an input set based on given constraints and desired outputs"""
+		"""Suggest design parameters based on given constraints and desired outputs"""
 
-		#Get all of our constraints
+		# Get all of our constraints
+		# It is quite possible to have no constraints if the user does not have a preference
 		constraints = {}
 		for param_name in self.di.input_headers:
 			param_entry = self.entries_dict[param_name].get()
 			if param_entry != "":
-				#The constraint can either be a single value or a range
+				# The constraint can either be a single value or a range
 				if "-" in param_entry:
-					#If it is a range x to y, the range is x-y
+					# If it is a range x to y, the range is x-y
 					pair = param_entry.split("-")
 					wanted_constraint = (float(pair[0]),float(pair[1]))
 				else:
-					#If it is a single value x, the range is x-x
+					# If it is a single value x, the range is x-x
 					wanted_constraint = (float(param_entry),float(param_entry))
 
+				# Make sure that our constraints are in range. Just creates a warning if not.
 				if wanted_constraint[0] <= self.di.ranges_dict[param_name][0]:
 					tkinter.messagebox.showwarning("Out of range constraint",param_name + " was too low.")
 				elif wanted_constraint[1] >= self.di.ranges_dict[param_name][1]:
 					tkinter.messagebox.showwarning("Out of range constraint",param_name + " was too high.")
 				constraints[param_name] = wanted_constraint
 
+
+		# Regime must be 1 or 2 (dripping or jetting regime)
 		regime_entry = self.entries_dict["regime"].get()
 		if regime_entry != "":
 			if regime_entry == "1" or regime_entry == "2":
@@ -153,7 +157,7 @@ class DAFD_GUI:
 					tkinter.messagebox.showwarning("Out of range desired value", param_name + " was out of range.")
 					desired_vals[param_name] = wanted_val
 
-		#Return and display the results
+		# Return and display the results
 		results = self.di.runInterp(desired_vals,constraints)
 		print(self.di.runForward(results))
 		self.results_label["text"] = "\n".join([x + " : " + str(results[x]) for x in self.di.input_headers])

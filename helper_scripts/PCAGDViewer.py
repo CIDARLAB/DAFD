@@ -1,4 +1,6 @@
-""" Displays the results of gradient descent in the reverse model as a 2D figure via PCA"""
+""" Displays the results of gradient descent in the reverse model as a 2D figure via PCA
+		Deprecated and not used in the final paper. Visualizations were not very informative.
+"""
 
 from helper_scripts.ModelHelper import ModelHelper
 from sklearn.decomposition import PCA

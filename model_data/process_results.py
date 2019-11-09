@@ -1,3 +1,5 @@
+""" Unimportant utility script that was quickly made to reduce manual work in Excel"""
+
 import sys
 
 value_dict = {}

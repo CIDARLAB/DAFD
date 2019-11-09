@@ -1,3 +1,5 @@
+""" Gradient Descent visualized for each parameter on a sliding bar"""
+
 from colour import Color
 from matplotlib import pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
@@ -7,7 +9,7 @@ headers = []
 data_entries = []
 experimental_outputs = []
 desired_outputs = []
-with open("InterResults_unconstrained.csv","r") as f:
+with open("InterResults.csv","r") as f:
 	experimental_outputs = f.readline().strip().split(":")[1].split(",")
 	desired_outputs = f.readline().strip().split(":")[1].split(",")
 	headers = f.readline().strip().split(",")

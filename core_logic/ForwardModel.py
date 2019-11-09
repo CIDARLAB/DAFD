@@ -14,7 +14,7 @@ class ForwardModel:
 
 	When you want to predict outputs,
 		1. Model predicts regime based on inputs
-		2. For each output variable, the model returns a
+		2. For each output variable, the model returns the prediction based on the inputs
 
 	"""
 
@@ -32,7 +32,13 @@ class ForwardModel:
 
 
 	def predict(self, features, normalized = False, regime=0):
-		# regime is an optional parameter that tells the prediction to override the regime prediction
+		""" Interface for the forward models
+				- regime is an optional parameter. If it is 1 or 2, the forward model will skip regime prediction and
+					use the given value
+				- features is a list of the input features. It can be either normalized or not. The default is to take
+				 	non-normalized features. If you want to use normalized, make sure you specify by setting
+				 	normalized=True
+		"""
 		ret_dict = {}
 		if normalized:
 			norm_features = features

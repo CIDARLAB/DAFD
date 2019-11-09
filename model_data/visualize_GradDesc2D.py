@@ -1,3 +1,5 @@
+""" Visualization of the gradient descent as a 2D graph of generation_rate vs size for each step in the optimization"""
+
 from tkinter import *
 from colour import Color
 import matplotlib.pyplot as plt
@@ -11,7 +13,7 @@ headers = []
 data_entries = []
 experimental_outputs = []
 desired_outputs = []
-with open("InterResults_unconstrained.csv","r") as f:
+with open("InterResults.csv","r") as f:
 	experimental_outputs = list(map(float,f.readline().strip().split(":")[1].split(",")))
 	desired_outputs = list(map(float,f.readline().strip().split(":")[1].split(",")))
 	headers = f.readline().strip().split(",")

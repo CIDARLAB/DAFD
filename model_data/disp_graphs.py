@@ -1,3 +1,5 @@
+""" This stand-alone script was used to get summary statistics from the model outputs """
+
 import sys
 import numpy as np
 from sklearn.linear_model import LinearRegression
@@ -6,6 +8,8 @@ from matplotlib import pyplot as plt
 
 
 def disp_graphs(csv_file):
+	""" The CSV file is derived from the ForwardModelTester.py script. It essentially has the observed and predicted
+	values for all points in a dataset (normally obtained via cross validation)"""
 	print(csv_file)
 	validations = []
 	with open(csv_file,"r") as f:

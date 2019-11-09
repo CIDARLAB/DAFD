@@ -1,4 +1,4 @@
-"""The interpolation model that DAFD runs on"""
+"""The generative model that produces design suggestions"""
 
 from tqdm import tqdm
 from scipy.interpolate import Rbf
@@ -168,7 +168,7 @@ class InterModel:
 		The core part of DAFD
 		Args:
 			desired_val_dict: Dict with output type as the key and desired value as the value
-				Just don't include other output type if you just want to interpolate on one
+				Just don't include other output type if you just want to optimize on one
 
 			constraints: Dict with input type as key and acceptable range as the value
 				The acceptable range should be a tuple with the min as the first val and the max as the second val
@@ -192,11 +192,19 @@ class InterModel:
 
 
 
-		skip_list = []
+		# This loop runs until either the algorithm finds a point that is close enough to the user's desiers or until
+		#  every point has been searched and the model needs to move on to optimization.
+		skip_list = [] # List of points we've already tried
 		while(True):
-			start_pos, closest_index = self.get_closest_point(norm_desired_vals, constraints=norm_constraints, max_drop_exp_error=5, skip_list=skip_list)
+			# Get the closest point we haven't tried already
+			start_pos, closest_index = self.get_closest_point(norm_desired_vals,
+																constraints=norm_constraints,
+																max_drop_exp_error=5,
+																skip_list=skip_list)
 			if closest_index == -1:
-				start_pos, closest_index = self.get_closest_point(norm_desired_vals, constraints=norm_constraints)
+				start_pos, closest_index = self.get_closest_point(norm_desired_vals,
+																	constraints=norm_constraints)
+				# Give up if we have tried every point and then optimize based on the closest point
 				break
 			skip_list.append(closest_index)
 
@@ -213,6 +221,7 @@ class InterModel:
 			should_skip_optim_size = True
 			should_skip_optim_constraints = True
 
+			# If the point is outside of the constraint range, skip it
 			for constraint in constraints:
 				cons_range = constraints[constraint]
 				this_val = self.MH.all_dat[closest_index][constraint]
@@ -223,6 +232,7 @@ class InterModel:
 			if self.constrained_regime != -1 and self.MH.all_dat[closest_index]["regime"] != self.constrained_regime:
 				should_skip_optim_constraints = False
 
+			# If the rate is too far deviated, skip the point
 			if "generation_rate" in desired_val_dict:
 				if desired_val_dict["generation_rate"] > 100:
 					pred_rate_error = abs(desired_val_dict["generation_rate"] - prediction["generation_rate"]) / desired_val_dict["generation_rate"]
@@ -235,6 +245,7 @@ class InterModel:
 					if pred_rate_error > 15 or exp_rate_error > 15:
 						should_skip_optim_rate = False
 
+			# If the size is too far deviated, skip the point
 			if "droplet_size" in desired_val_dict:
 				pred_size_error = abs(desired_val_dict["droplet_size"] - prediction["droplet_size"])
 				exp_size_error = abs(desired_val_dict["droplet_size"] - self.MH.all_dat[closest_index]["droplet_size"])
@@ -249,6 +260,7 @@ class InterModel:
 				if pred_size_error > 10 or inferred_size_error > 10 or exp_size_error > 5:
 					should_skip_optim_size = False
 
+			# Return experimental point if it meets criteria
 			if should_skip_optim_rate and should_skip_optim_size and should_skip_optim_constraints:
 				results = {x: self.MH.all_dat[closest_index][x] for x in self.MH.input_headers}
 				results["point_source"] = "Experimental"
@@ -281,6 +293,7 @@ class InterModel:
 		stepsize = 1e-2
 		ftol = 1e-9
 
+		# I log the values here so I can use them for visualization
 		with open("AlgorithmProcess.csv","w") as f:
 			double_headers = []
 			for header in self.MH.input_headers:
@@ -288,7 +301,9 @@ class InterModel:
 				double_headers.append(header+"_neg")
 			f.write(",".join(double_headers) + "\n")
 
-		for i in range(5000):
+
+		# Iterate the optimization
+		for i in range(5000): # 5000 is an arbitrary upper bound on optimization steps
 			new_pos = pos
 			new_loss = loss
 			for index, val in enumerate(pos):
@@ -317,6 +332,7 @@ class InterModel:
 			with open("AlgorithmProcess.csv","a") as f:
 				f.write("\n")
 
+			# If we failed to decrease the loss by more than ftol, break the loop
 			if loss - new_loss < ftol:
 				print(loss)
 				print(new_loss)

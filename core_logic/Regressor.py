@@ -18,7 +18,7 @@ load_model = True	# Load the file from disk
 
 class Regressor:
 	"""
-	Small adapter class that handles training and usage of the underlying models
+	Small adapter class that handles training and usage of the underlying regression models
 	"""
 
 	regression_model = None

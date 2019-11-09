@@ -18,12 +18,16 @@ class DAFD_Interface:
 		self.output_headers = self.MH.output_headers
 
 	def runInterp(self, desired_vals, constraints):
+		""" Run the design automation tool"""
 		results = self.it.interpolate(desired_vals,constraints)
 		return results
 
 	def runForward(self, features):
-		# features is a dictionary containing the name of each feature as the key and the feature value as the value
-		raw_features = [features[x] for x in self.input_headers]
+		""" Run the forward model
+				- features is a dictionary containing the name of each feature as the key and the feature value
+					(not normalized) as the value
+		"""
+		raw_features = [features[x] for x in self.input_headers] # Order the features correctly
 		results = self.fw.predict(raw_features)
 		design_params = {}
 		for feature in features:

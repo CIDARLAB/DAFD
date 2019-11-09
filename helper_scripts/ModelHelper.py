@@ -3,18 +3,22 @@ import csv
 import sklearn
 import numpy as np
 
-always_use_whole_dataset_normalization = True # Set to true to use whole data normalization
+
+# Set this true to normalize the whole dataset against itself. If this is false, then the dataset will only get normalized
+# within each regime. The correct option will depend on how the underlying machine learning models were trained. If you
+# separated the data into regime 1 and regime 2 sets, then normalized each set indepently, set this to False. If you
+# used one big dataset, normalized the entire set, then split the data after for each model, then this should be True.
+always_use_whole_dataset_normalization = True
 
 class ModelHelper:
 	"""
-	This class handles data retrieval, partitioning, and normalization.
-	Singleton
+	This Singleton class is a utility used by various scripts for data retrieval, partitioning, and normalization
 	"""
 
 	RESOURCE_PATH = "experimental_data/ExperimentalResults_888.csv"		# Experimental data location
 	NUM_OUTPUTS = 2													# Droplet Generation Rate + Droplet Size
 
-	instance = None						# Singleton
+	instance = None						# Singleton. Use the get_instance method to return this.
 	input_headers = []					# Feature names (orifice size, aspect ratio, etc...)
 	output_headers = []					# Output names (droplet size, generation rate)
 	all_dat = []						# Raw experimental data
