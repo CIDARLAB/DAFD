@@ -4,5 +4,3 @@
 *.tree
 /dist
 /model_data
-/models/forward_models/saved
-/models/regime_models/saved
