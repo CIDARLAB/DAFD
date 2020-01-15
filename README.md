@@ -1,4 +1,4 @@
-# DAFD - Design Automation Based on Fluid Dynamics
+# DAFD - Design Automation of Fluid Dynamics
 
 ## Overview
 DAFD builds a generative model using experimental data of microfludic droplet generators that we have previously collected in order to provide suggestions for chip design parameters. DAFD takes in a desired droplet size and generation rate and outputs a suggestion for the orifice size, aspect ratio, expansion ratio, orifice length, water inlet size, oil inlet size, the flow rate ratio, and the capillary number to produce a droplet generator that realizes your desired rate and size. DAFD also allows users to enter in constraints on the parameters to allow for greater control of the chip design.
