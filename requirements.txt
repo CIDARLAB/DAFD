@@ -27,4 +27,4 @@ tensorboard==1.12.2
 tensorflow==1.12.0
 termcolor==1.1.0
 tqdm==4.29.0
-Werkzeug==0.14.1
+Werkzeug==0.15.3
