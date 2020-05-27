@@ -16,6 +16,7 @@ from bin.DAFD_Interface import DAFD_Interface
 import random as r
 import itertools
 import time as t
+import pandas as pd
 import matplotlib.pyplot as plt
 
 def run_analysis(features, tolerance, di):
@@ -30,6 +31,13 @@ def run_analysis(features, tolerance, di):
     print(e1-start)
     return outputs
 
+
+def sobol_prep(features, tolerance):
+    tol = tolerance/100 # Assuming that tolerance is given in percent, format
+    feat_denorm = denormalize_features(features)
+    max_feat, min_feat = make_tol_dicts(feat_denorm, tol)
+    tol_df = pd.DataFrame([min_feat, feat_denorm, max_feat])
+    return tol_df
 
 def plot_results(outputs, original, tolerance):
     plt.scatter([i["droplet_size"] for i in outputs], [i["generation_rate"] for i in outputs])
