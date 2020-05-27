@@ -142,7 +142,7 @@ if __name__ == "__main__":
         "flow_rate_ratio": 10,
         "capillary_number": 0.05
     }
-    tolerance = 99
+    tolerance = 10
     di = DAFD_Interface()
     outputs = run_analysis(test_features, tolerance, di)
     plots = plot_results(outputs, di.runForward(test_features), tolerance)
