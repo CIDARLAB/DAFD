@@ -6,6 +6,7 @@ import numpy as np
 from DAFD_TolTest import renormalize_features
 import time
 
+
 def main_effect_analysis(data, inputs_df):
     size_vars = []
     gen_vars = []
@@ -35,8 +36,8 @@ def sobol_analyis(df, sample_size, di, calc_second_order=False):
     results = sobol_sampling(problem, sample_size,di, calc_second_order=calc_second_order)
     sizes = list(results.loc[:, "droplet_size"])
     gens = list(results.loc[:, "generation_rate"])
-    si_size = sobol.analyze(problem, np.array(sizes), calc_second_order=calc_second_order, print_to_console=True)
-    si_gen = sobol.analyze(problem, np.array(gens), calc_second_order=calc_second_order, print_to_console=True)
+    si_size = sobol.analyze(problem, np.array(sizes), calc_second_order=calc_second_order, print_to_console=False)
+    si_gen = sobol.analyze(problem, np.array(gens), calc_second_order=calc_second_order, print_to_console=False)
     return results, si_size, si_gen
 
 
@@ -55,3 +56,7 @@ def to_list_of_dicts(samples, keys):
     for sample in samples:
         sample_dict_list.append({key: sample[i] for i, key in enumerate(keys)})
     return sample_dict_list
+
+
+def pct_change(array, base):
+    return round((array - base)/base * 100, 4)
