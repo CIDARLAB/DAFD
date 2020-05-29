@@ -172,7 +172,8 @@ def get_principal_feature(si, feature_names):
     return feature_names[ST.index(max(ST))]
 
 
-def generate_heatmap_data(input_data, grid_dict, output):
+def generate_heatmap_data(input_data, grid_dict,di, output):
+    from stats_utils import pct_change
     key_names = list(grid_dict.keys())
     pts, grid = make_sample_grid(denormalize_features(input_data), grid_dict)
     grid_measure = [di.runForward(renormalize_features(pt)) for pt in grid]
@@ -182,102 +183,123 @@ def generate_heatmap_data(input_data, grid_dict, output):
         pt.append(outputs[i])
 
     heat_df = pd.DataFrame(pts, columns=[key_names[0], key_names[1], output])
-
-
     input_denormed = denormalize_features(input_data)
     heat_df.loc[:, key_names[0]] = pct_change(heat_df.loc[:, key_names[0]], input_denormed[key_names[0]]).astype(int)
     heat_df.loc[:, key_names[1]] = pct_change(heat_df.loc[:, key_names[1]], input_denormed[key_names[1]]).astype(int)
-    base_out = di.runForward(test_features)[output]
+    base_out = di.runForward(input_data)[output]
     heat_df.loc[:, output] = pct_change(heat_df.loc[:, output], base_out)
     heat_pivot = heat_df.pivot(index=key_names[1], columns=key_names[0], values=output)
     return heat_pivot[::-1]
 
-
-def heatmap_loop(input_data, pc, tol_df, output, grid_size):
+def heatmap_loop(input_data, pc, tol_df,di, output, grid_size):
     pc_range = make_grid_range(tol_df.loc[:, pc], grid_size)
     features = [feat for feat in tol_df.columns if feat != pc]
     heatmap_data = []
     for feat in features:
         feat_range = make_grid_range(tol_df.loc[:, feat], grid_size)
         grid_dict = {pc: pc_range, feat: feat_range}
-        heatmap_data.append(generate_heatmap_data(input_data, grid_dict, output))
+        heatmap_data.append(generate_heatmap_data(input_data, grid_dict,di, output))
     return heatmap_data
 
 
-def heatmap_workflow(input_data, pc_s, pc_g, tol_df, grid_size=11):
-    heatmap_data_s = heatmap_loop(input_data, pc_s, tol_df, "droplet_size", grid_size)
-    heatmap_data_g = heatmap_loop(input_data, pc_g, tol_df, "generation_rate", grid_size)
+def heatmap_workflow(input_data, pc_s, pc_g, tol_df, di, grid_size=11):
+    tol_df = tol_df[[col for col in tol_df.columns if col != pc_s] + [pc_s]]
+    tol_df = tol_df[[col for col in tol_df.columns if col != pc_g] + [pc_g]]
+
+    heatmap_data_s = heatmap_loop(input_data, pc_s, tol_df,di, "droplet_size", grid_size)
+    heatmap_data_g = heatmap_loop(input_data, pc_g, tol_df,di, "generation_rate", grid_size)
     return heatmap_data_s, heatmap_data_g
 
 
-def plot_heatmap(data, axs, row=0, col=0):
-    cbar = (col == 6)
-    plot = sns.heatmap(data, ax=axs[row][col],
-                       cbar=True)
+def plot_heatmap(data, axs,cbar_ax, row=0, col=0, vmax=None, map="magma"):
+    if col==6:
+        plot = sns.heatmap(data, ax=axs[row][col],
+                           cbar=True, vmin=-vmax, vmax=vmax,
+                           cmap = map, cbar_ax=cbar_ax)
+    else:
+        plot = sns.heatmap(data, ax=axs[row][col],
+                            cbar=False, vmin=-vmax, vmax=vmax,
+                           cmap = map,)
+    return plot
 
 
 def plot_heatmaps(hm_s, hm_g):
-    dx =0.7
-    dy = 1
-    figsize = plt.figaspect(float(dx * 2) / float(dy * 7))
+    size_max = max([np.abs(df).max().max() for df in hm_s])
+    rate_max = max([np.abs(df).max().max() for df in hm_g])
 
-    fig, axs = plt.subplots(2,len(hm_s), figsize=figsize)
-    #fig.set_size_inches(18.5, 10.5)
+    dx =0.7
+    dy = 0.8
+    figsize = plt.figaspect(float(dx * 2) / float(dy * 8))
+
+    fig, axs = plt.subplots(2,len(hm_s), figsize=figsize, facecolor="w")
+    #cbar_ax = fig.add_axes([.91, .6, .01, .3])
+    ca_pos_size = axs[0][6].get_position()
+    ca_pos_rate = axs[1][6].get_position()
+    cbar_ax_size = fig.add_axes([ca_pos_size.x0+0.1, ca_pos_size.y0+0.04, 0.01, 0.3])
+    cbar_ax_rate = fig.add_axes([ca_pos_rate.x0+0.1, ca_pos_rate.y0+0.04, 0.01, 0.3])
     pad = 0.05  # Padding around the edge of the figure
     xpad, ypad = dx * pad/2, dy * 3*pad
-    fig.subplots_adjust(left=xpad+0.02, right=1 - xpad, top=1 - ypad, bottom=ypad, wspace=0.6, hspace=0.6)
-
+    fig.subplots_adjust(left=xpad+0.02, right=(1 - xpad)-0.09, top=1 - ypad, bottom=ypad, wspace=0.6, hspace=0.6)
     hms = [hm_s, hm_g]
     for i in range(len(hm_s)):
-        plot_heatmap(hm_s[i],axs, row=0, col=i)
-        plot_heatmap(hm_g[i],axs, row=1, col=i)
+        plot_s = plot_heatmap(hm_s[i],axs,cbar_ax_size, row=0, col=i,vmax=size_max,map="viridis")
+        plot_g = plot_heatmap(hm_g[i],axs,cbar_ax_rate, row=1, col=i,vmax=rate_max,map='plasma')
+    plt.gcf().subplots_adjust(bottom=0.15)
     return fig
 
 
 def plot_sobol_results(si_size, si_gen, names):
-    fig, axs = plt.subplots(1, 2)
-    #fig = plt.figure(facecolor="w")
-    plt.bar(names, si_size["ST"], ax=axs[0])
-    plt.ylabel("Total-Effect Index")
-    plt.title("Sobol Sensitivity Study: Size")
-    plt.xticks(rotation='vertical')
+    sns.set_style("white")
+    sns.set_context("notebook")
+    fig, axs = plt.subplots(2, 1, facecolor="w")
+    plt.gcf().subplots_adjust(bottom=0.25)
 
-    #fig = plt.figure(facecolor="w")
-    plt.bar(names, si_gen["ST"], ax=axs[1])
-    plt.ylabel("Total-Effect Index")
-    plt.title("Sobol Sensitivity Study: Gen")
-    plt.xticks(rotation='vertical')
-
+    si = [si_size, si_gen]
+    output = ["(Size)", "(Rate)"]
+    for i, ax in enumerate(axs):
+        sns.barplot(names, si[i]["ST"], ax=ax, color='#00B2EE')
+        if i == 0:
+            plt.setp(ax, xticks = [])
+        plt.setp(ax, ylabel=("Total-Effect "+output[i]))
+        plt.xticks(rotation="vertical")
+    ylims = [np.around(ax.get_ylim()[1],1) for ax in axs]
+    for ax in axs:
+        ax.set_ylim(0, max(ylims)*1.1)
+    return fig
 
 if __name__ == "__main__":
     test_features = {
-        "orifice_size": 125,
-        "aspect_ratio": 2,
+        "orifice_size": 150,
+        "aspect_ratio": 1,
         "expansion_ratio": 2,
         "normalized_orifice_length": 2,
         "normalized_water_inlet": 2,
         "normalized_oil_inlet": 2,
-        "flow_rate_ratio": 10,
-        "capillary_number": 0.05
+        "flow_rate_ratio": 22,
+        "capillary_number": 0.8
     }
     tolerance = 10
-    sobol_samples = 100
+    sobol_samples = 1000
     grid_size = 11
 
     di = DAFD_Interface()
+    print(di.runForward(test_features))
     #outputs = run_analysis(test_features, tolerance, di)
     #plots = plot_results(outputs, di.runForward(test_features), tolerance)
     tol_df = sobol_prep(test_features, tolerance)
     results, si_size, si_gen = sobol_analyis(tol_df, sobol_samples, di, calc_second_order=True)
-    #fig = plot_sobol_results(si_size, si_gen, tol_df.columns)
-    #plt.savefig("test2.png")
+    fig = plot_sobol_results(si_size, si_gen, tol_df.columns)
+    plt.savefig("test2.png")
 
     pc_s = get_principal_feature(si_size, tol_df.columns)
     pc_g = get_principal_feature(si_gen, tol_df.columns)
-    hm_s, hm_g = heatmap_workflow(test_features, pc_s, pc_g, tol_df, grid_size=grid_size)
+    hm_s, hm_g = heatmap_workflow(test_features, pc_s, pc_g, tol_df,di, grid_size=grid_size)
     fig = plot_heatmaps(hm_s, hm_g)
     plt.savefig("test.png")
-    #
-    # make_sample_grids()
-    # predict_sample_grids()
-    # generate_sample_maps()
+
+    #TODO: Integrate into DAFD Workflow (cmd first, then think about GUI)
+    #TODO: generate PDF
+    #TODO: Get a standard water/oil flow heatmap (across all ranges)
+    #TODO: Add in any other images that are needed
+    #TODO: Just clean up the entire system, make it pythonic
+    #TODO: Eliminate unnecessary functions from the system

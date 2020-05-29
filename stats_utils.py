@@ -26,8 +26,8 @@ def main_effect_analysis(data, inputs_df):
 
 def sobol_analyis(df, sample_size, di, calc_second_order=False):
     num_vars = len(df.columns)
-    mins = df.quantile(.1)
-    maxs = df.quantile(.9)
+    mins = df.min()
+    maxs = df.max()
     problem = {
         'num_vars': num_vars,
         'names': list(df.columns),
