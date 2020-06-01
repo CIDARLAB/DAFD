@@ -3,8 +3,8 @@ import pandas as pd
 from SALib.sample import saltelli
 from SALib.analyze import sobol
 import numpy as np
-from DAFD_TolTest import renormalize_features
 import time
+import itertools
 
 def make_grid_range(vals, size):
     return np.linspace(vals.min(), vals.max(), size)
@@ -50,31 +50,10 @@ def main_effect_analysis(data, inputs_df):
     return summary
 
 
-def sobol_analyis(df, sample_size, di, calc_second_order=False):
-    num_vars = len(df.columns)
-    mins = df.min()
-    maxs = df.max()
-    problem = {
-        'num_vars': num_vars,
-        'names': list(df.columns),
-        'bounds': [[mins[i], maxs[i]] for i in range(num_vars)]
-    }
-    results = sobol_sampling(problem, sample_size,di, calc_second_order=calc_second_order)
-    sizes = list(results.loc[:, "droplet_size"])
-    gens = list(results.loc[:, "generation_rate"])
-    si_size = sobol.analyze(problem, np.array(sizes), calc_second_order=calc_second_order, print_to_console=False)
-    si_gen = sobol.analyze(problem, np.array(gens), calc_second_order=calc_second_order, print_to_console=False)
-    return results, si_size, si_gen
 
 
-def sobol_sampling(problem, sample_size,di, calc_second_order=False):
-    samples = saltelli.sample(problem, sample_size, calc_second_order=calc_second_order)
-    sample_dicts = to_list_of_dicts(samples, problem["names"])
-    samples_normed = [renormalize_features(sample_dict) for sample_dict in sample_dicts]
-    samples_df = pd.DataFrame(sample_dicts)
-    outputs = [di.runForward(sample_normed) for sample_normed in samples_normed]
-    outputs_df = pd.DataFrame(outputs).loc[:, ["droplet_size", "generation_rate"]]
-    return pd.concat([samples_df, outputs_df], axis=1)
+
+
 
 
 def to_list_of_dicts(samples, keys):

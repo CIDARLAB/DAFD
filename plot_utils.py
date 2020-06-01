@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
-from stat
+from tol_utils import *
 
 
 def plot_results(outputs, original, tolerance):
@@ -11,6 +11,7 @@ def plot_results(outputs, original, tolerance):
     plt.title("All possible outputs with tolerance of %d percent" % tolerance)
     plt.legend(["Results with Tolerance", "User Input"])
     plt.show()
+
 
 def plot_heatmap(data, axs,cbar_ax, row=0, col=0, vmax=None, map="magma"):
     if col==6:
@@ -68,8 +69,8 @@ def plot_sobol_results(si_size, si_gen, names):
         ax.set_ylim(0, max(ylims)*1.1)
     return fig
 
-def plot_flow_heatmaps(size_df, rate_df, user_inputs):
-    feat_denorm = denormalize_features(user_inputs)
+
+def plot_flow_heatmaps(size_df, rate_df, feat_denorm):
     oil_flow = feat_denorm["oil_flow"]
     water_flow = feat_denorm["water_flow"]
     oil_idx = min_dist_idx(oil_flow, size_df.columns)

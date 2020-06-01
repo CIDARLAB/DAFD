@@ -22,36 +22,69 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from plot_utils import *
 
+
 class ToleranceHelper:
     """This class contains the main functions needed for the tolerance study."""
     features_normalized = {}
     features_denormalized = {}
     tolerance = None
+    di = None
     tol_df = None
 
     flow_heatmap_size = None
     flow_heatmap_gen = None
     flow_grid_size = None
 
-    feature_heatmaps = None
+    feature_heatmap_size = None
+    feature_heatmap_gen = None
     feature_grid_size = None
 
-    di = None
+    pf_samples = None
+    si_size = None
+    si_gen = None
 
-    def __init__(self, feature_inputs, tolerance=10, feature_grid_size = 11, flow_grid_size = 51):
-        self.inputs_normalized = feature_inputs
-        self.inputs_denormalized = self.denormalize_features(self.inputs_normalized)
+    def __init__(self, feature_inputs, di=None, tolerance=10, feature_grid_size = 11, flow_grid_size = 51, pf_samples=100):
+        self.features_normalized = feature_inputs
+        self.features_denormalized = self.denormalize_features(self.features_normalized)
         self.tolerance = tolerance/100
-        self.tol_df = self.make_tol_df(self.inputs_normalized, self.tolerance)
+        if di == None:
+            self.di = DAFD_Interface()
+        else:
+            self.di = di
+        self.tol_df = self.make_tol_df(self.features_denormalized, self.tolerance)
+        self.feature_names = list(self.tol_df.columns)
         self.feature_grid_size = feature_grid_size
         self.flow_grid_size = flow_grid_size
-        self.di = DAFD_Interface
+        self.pf_samples = pf_samples
 
+    def sobol_analysis(self, calc_second_order=False):
+        si_size, si_gen = self.principal_feature_analysis(calc_second_order=calc_second_order)
+        self.si_size = si_size
+        self.si_gen = si_gen
+        return si_size, si_gen
+
+    def feature_heatmaps(self):
+        if self.si_gen is None or self.si_size is None:
+            _, _ = self.sobol_analysis()
+        pc_s = get_principal_feature(self.si_size, self.feature_names)
+        pc_g = get_principal_feature(self.si_gen, self.feature_names)
+        heatmaps_size, heatmaps_rate = self.make_feature_heatmaps(pc_s, pc_g)
+        self.feature_heatmap_size = heatmaps_size
+        self.feature_heatmap_gen = heatmaps_rate
+        return heatmaps_size, heatmaps_rate
+
+    def flow_heatmaps(self, range_mult=2):
+        oil_range = [0.1, self.features_denormalized["oil_flow"]*range_mult]
+        water_range = [0.5, self.features_denormalized["water_flow"]*range_mult]
+        flow_heatmap_size, flow_heatmap_gen = self.make_flow_heatmaps(oil_range, water_range)
+        self.flow_heatmap_size = flow_heatmap_size
+        self.flow_heatmap_gen  = flow_heatmap_gen
+        return flow_heatmap_size, flow_heatmap_gen
 
     def make_tol_df(self, features, tol):
         max_feat = {key: (features[key] + tol * features[key]) for key in features.keys()}
         min_feat = {key: (features[key] - tol * features[key]) for key in features.keys()}
-        return pd.DataFrame(min_feat, features, max_feat)
+        return pd.DataFrame([min_feat, features, max_feat])
 
 
     def make_flow_heatmaps(self, oil_range, water_range):
@@ -59,24 +92,26 @@ class ToleranceHelper:
         water = np.around(make_grid_range(pd.Series(water_range), self.flow_grid_size), 2)
 
         grid_dict = {"oil_flow": oil, "water_flow": water}
-        self.flow_heatmap_size = self.generate_heatmap_data(grid_dict, di, "droplet_size", percent=False)
-        self.flow_heatmap_gen = self.generate_heatmap_data(grid_dict, di, "generation_rate", percent=False)
+        flow_heatmap_size = self.generate_heatmap_data(grid_dict, "droplet_size", percent=False)
+        flow_heatmap_gen = self.generate_heatmap_data(grid_dict, "generation_rate", percent=False)
+        return flow_heatmap_size, flow_heatmap_gen
 
-    def make_feature_heatmaps(self, input_data, pc_s, pc_g, tol_df, di, grid_size=11):
-        tol_df_shuff = self.tol_df[[col for col in tol_df.columns if col != pc_s] + [pc_s]]
-        tol_df_shuff = tol_df_shuff[[col for col in tol_df.columns if col != pc_g] + [pc_g]]
 
-        heatmap_data_s = self.heatmap_loop(, pc_s, tol_df_shuff, di, "droplet_size", grid_size)
-        heatmap_data_g = self.heatmap_loop(self.features_normalized, pc_g, tol_df, di, "generation_rate", grid_size)
+    def make_feature_heatmaps(self, pc_s, pc_g):
+        tol_df_shuff = self.tol_df[[col for col in self.tol_df.columns if col != pc_s] + [pc_s]]
+        tol_df_shuff = tol_df_shuff[[col for col in self.tol_df.columns if col != pc_g] + [pc_g]]
+
+        heatmap_data_s = self._heatmap_loop(pc_s, tol_df_shuff, "droplet_size")
+        heatmap_data_g = self._heatmap_loop(pc_g, tol_df_shuff, "droplet_size")
         return heatmap_data_s, heatmap_data_g
 
 
-    def heatmap_loop(self, pc, tol_df, output, grid_size):
-        pc_range = make_grid_range(tol_df.loc[:, pc], grid_size)
-        features = [feat for feat in tol_df.columns if feat != pc]
+    def _heatmap_loop(self, pc, tol_df_shuff, output):
+        pc_range = make_grid_range(tol_df_shuff.loc[:, pc], self.feature_grid_size)
+        features = [feat for feat in tol_df_shuff.columns if feat != pc]
         heatmap_data = []
         for feat in features:
-            feat_range = make_grid_range(tol_df.loc[:, feat], grid_size)
+            feat_range = make_grid_range(tol_df_shuff.loc[:, feat], self.feature_grid_size)
             grid_dict = {pc: pc_range, feat: feat_range}
             heatmap_data.append(self.generate_heatmap_data(grid_dict, output))
         return heatmap_data
@@ -95,10 +130,36 @@ class ToleranceHelper:
                                                       self.features_denormalized[key_names[0]]).astype(int)
             heat_df.loc[:, key_names[1]] = pct_change(heat_df.loc[:, key_names[1]],
                                                       self.features_denormalized[key_names[1]]).astype(int)
-            base_out = di.runForward(self.features_denormalized)[output]
+            base_out = di.runForward(self.features_normalized)[output]
             heat_df.loc[:, output] = pct_change(heat_df.loc[:, output], base_out)
         heat_pivot = heat_df.pivot(index=key_names[1], columns=key_names[0], values=output)
         return heat_pivot[::-1]
+
+
+    def principal_feature_analysis(self, calc_second_order=False):
+        mins = self.tol_df.min()
+        maxs = self.tol_df.max()
+        problem = {
+            'num_vars': len(self.feature_names),
+            'names': self.feature_names,
+            'bounds': [[mins[i], maxs[i]] for i in range(len(mins))]
+        }
+        results = self.sobol_sampling(problem, calc_second_order=calc_second_order)
+        sizes = list(results.loc[:, "droplet_size"])
+        gens = list(results.loc[:, "generation_rate"])
+        si_size = sobol.analyze(problem, np.array(sizes), calc_second_order=calc_second_order, print_to_console=False)
+        si_gen = sobol.analyze(problem, np.array(gens), calc_second_order=calc_second_order, print_to_console=False)
+        return si_size, si_gen
+
+
+    def sobol_sampling(self, problem, calc_second_order=False):
+        samples = saltelli.sample(problem, self.pf_samples, calc_second_order=calc_second_order)
+        sample_dicts = to_list_of_dicts(samples, problem["names"])
+        samples_normed = [self.renormalize_features(sample_dict) for sample_dict in sample_dicts]
+        samples_df = pd.DataFrame(sample_dicts)
+        outputs = [self.di.runForward(sample_normed) for sample_normed in samples_normed]
+        outputs_df = pd.DataFrame(outputs).loc[:, ["droplet_size", "generation_rate"]]
+        return pd.concat([samples_df, outputs_df], axis=1)
 
 
     def denormalize_features(self, features):
@@ -124,13 +185,13 @@ class ToleranceHelper:
         water_flow_rate_ul_per_min = water_flow_rate * 1000 / 60
 
         ret_dict = {
-            "orifice_size": Or
-            "depth": channel_height
-            "outlet_width": outlet_channel_width
-            "orifice_length": orifice_length
-            "water_inlet": water_inlet_width
-            "oil_inlet": oil_inlet
-            "oil_flow": oil_flow_rate_ml_per_hour
+            "orifice_size": Or,
+            "depth": channel_height,
+            "outlet_width": outlet_channel_width,
+            "orifice_length": orifice_length,
+            "water_inlet": water_inlet_width,
+            "oil_inlet": oil_inlet,
+            "oil_flow": oil_flow_rate_ml_per_hour,
             "water_flow": water_flow_rate_ul_per_min
         }
         return ret_dict
@@ -157,29 +218,16 @@ class ToleranceHelper:
         Ca_num = ((0.0572*water_inlet_width * 1e-6*(oil_flow_rate_ml_per_hour/(3600*1e6))) / \
                  (0.005 * channel_height * 1e-6 * oil_inlet * 1e-6)) * (1/(Or * 1e-6) - 1/(2*oil_inlet*1e-6))
         ret_dict = {
-            "orifice_size": Or
-            "aspect_ratio": As
-            "expansion_ratio": Exp
-            "normalized_orifice_length": norm_Ol
-            "normalized_water_inlet": norm_Wi
-            "normalized_oil_inlet": norm_Oi
-            "flow_rate_ratio": Q_ratio
+            "orifice_size": Or,
+            "aspect_ratio": As,
+            "expansion_ratio": Exp,
+            "normalized_orifice_length": norm_Ol,
+            "normalized_water_inlet": norm_Wi,
+            "normalized_oil_inlet": norm_Oi,
+            "flow_rate_ratio": Q_ratio,
             "capillary_number":  round(Ca_num, 5)
             }
         return ret_dict
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 if __name__ == "__main__":
@@ -193,29 +241,19 @@ if __name__ == "__main__":
         "flow_rate_ratio": 6,
         "capillary_number": 0.05
     }
-    tolerance = 10
-    sobol_samples = 100
-    grid_size = 11
-
     di = DAFD_Interface()
-    tol_df = sobol_prep(test_features, tolerance)
-    results, si_size, si_gen = sobol_analyis(tol_df, sobol_samples, di, calc_second_order=True)
-    fig = plot_sobol_results(si_size, si_gen, tol_df.columns)
-    plt.savefig("test2.png")
+    TH = ToleranceHelper(test_features, di=di)
+    TH.sobol_analysis()
+    TH.feature_heatmaps()
+    TH.flow_heatmaps()
+    fig = plot_sobol_results(TH.si_size, TH.si_gen, TH.feature_names)
+    plt.savefig("test2_2.png")
 
-    pc_s = get_principal_feature(si_size, tol_df.columns)
-    pc_g = get_principal_feature(si_gen, tol_df.columns)
-    hm_s, hm_g = heatmap_workflow(test_features, pc_s, pc_g, tol_df,di, grid_size=grid_size)
-    fig = plot_heatmaps(hm_s, hm_g)
-    plt.savefig("test.png")
+    fig = plot_heatmaps(TH.feature_heatmap_size, TH.feature_heatmap_gen)
+    plt.savefig("test_2.png")
 
-    feat_denormed = denormalize_features(test_features)
-    oil_range = [0.1, 2*feat_denormed["oil_flow"]]
-    water_range = [0.5, 2*feat_denormed["water_flow"]]
-    flow_grid = 51
-    size_df, rate_df = flow_heatmaps(oil_range, water_range, flow_grid)
-    fig = plot_flow_heatmaps(size_df, rate_df, test_features)
-    plt.savefig("test_3.png")
+    fig = plot_flow_heatmaps(TH.flow_heatmap_size, TH.flow_heatmap_gen, TH.features_denormalized)
+    plt.savefig("test_3_2.png")
 
 
 
