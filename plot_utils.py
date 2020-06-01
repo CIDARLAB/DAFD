@@ -13,15 +13,16 @@ def plot_results(outputs, original, tolerance):
     plt.show()
 
 
-def plot_heatmap(data, axs,cbar_ax, row=0, col=0, vmax=None, map="magma"):
+def plot_heatmap(data, axs,cbar_ax,label, row=0, col=0, vmax=None, map="magma"):
     if col==6:
         plot = sns.heatmap(data, ax=axs[row][col],
                            cbar=True, vmin=-vmax, vmax=vmax,
-                           cmap = map, cbar_ax=cbar_ax)
+                           cmap = map, cbar_ax=cbar_ax, cbar_kws={'label': label})
     else:
         plot = sns.heatmap(data, ax=axs[row][col],
                             cbar=False, vmin=-vmax, vmax=vmax,
-                           cmap = map,)
+                           cmap = map)
+    axs[row][col].scatter(len(data.columns)/2, len(data.columns)/2, marker="*", color='r', s=100)
     return plot
 
 
@@ -34,7 +35,6 @@ def plot_heatmaps(hm_s, hm_g):
     figsize = plt.figaspect(float(dx * 2) / float(dy * 8))
 
     fig, axs = plt.subplots(2,len(hm_s), figsize=figsize, facecolor="w")
-    #cbar_ax = fig.add_axes([.91, .6, .01, .3])
     ca_pos_size = axs[0][6].get_position()
     ca_pos_rate = axs[1][6].get_position()
     cbar_ax_size = fig.add_axes([ca_pos_size.x0+0.1, ca_pos_size.y0+0.04, 0.01, 0.3])
@@ -44,8 +44,8 @@ def plot_heatmaps(hm_s, hm_g):
     fig.subplots_adjust(left=xpad+0.02, right=(1 - xpad)-0.09, top=1 - ypad, bottom=ypad, wspace=0.6, hspace=0.6)
     hms = [hm_s, hm_g]
     for i in range(len(hm_s)):
-        plot_s = plot_heatmap(hm_s[i],axs,cbar_ax_size, row=0, col=i,vmax=size_max,map="viridis")
-        plot_g = plot_heatmap(hm_g[i],axs,cbar_ax_rate, row=1, col=i,vmax=rate_max,map='plasma')
+        plot_s = plot_heatmap(hm_s[i],axs,cbar_ax_size, "Droplet Size", row=0, col=i,vmax=size_max,map="viridis")
+        plot_g = plot_heatmap(hm_g[i],axs,cbar_ax_rate, "Generation Rate", row=1, col=i,vmax=rate_max,map='plasma')
     plt.gcf().subplots_adjust(bottom=0.15)
     return fig
 
@@ -71,11 +71,6 @@ def plot_sobol_results(si_size, si_gen, names):
 
 
 def plot_flow_heatmaps(size_df, rate_df, feat_denorm):
-    oil_flow = feat_denorm["oil_flow"]
-    water_flow = feat_denorm["water_flow"]
-    oil_idx = min_dist_idx(oil_flow, size_df.columns)
-    water_idx = min_dist_idx(water_flow, size_df.index)
-
     tick_spacing = int(np.floor(len(size_df.columns) / 10))
     dx = 0.15
     dy = 1
@@ -85,13 +80,13 @@ def plot_flow_heatmaps(size_df, rate_df, feat_denorm):
     sns.set_style("white")
     sns.set_context("notebook")
     sns.set(font_scale=1.25)
-    sns.heatmap(size_df, cmap="viridis", vmin=0, ax=axs[0], xticklabels=tick_spacing,
+    sns.heatmap(size_df, cmap="viridis", ax=axs[0], xticklabels=tick_spacing,
                 yticklabels=tick_spacing, cbar_kws={'label': 'Droplet Size'})
-    axs[0].scatter(oil_idx, water_idx, marker="*", color="r", s=200)
+    axs[0].scatter(len(size_df.columns)/2, len(size_df.columns)/2, marker="*", color="r", s=200)
 
     plt.setp(axs[0], xlabel="Oil Flow Rate (ml/hr)", ylabel="Water Flow Rate (uL/min)")
-    sns.heatmap(rate_df, cmap="viridis", vmin=0, ax=axs[1], xticklabels=tick_spacing,
+    sns.heatmap(rate_df, cmap="viridis", ax=axs[1], xticklabels=tick_spacing,
                 yticklabels=tick_spacing, cbar_kws={'label': 'Generation Rate'})
     plt.setp(axs[1], xlabel="Oil Flow Rate (ml/hr)", ylabel="Water Flow Rate (uL/min)")
-    axs[1].scatter(oil_idx, water_idx, marker="*", color="r", s=200)
+    axs[1].scatter(len(size_df.columns)/2, len(size_df.columns)/2, marker="*", color="r", s=200)
     return fig

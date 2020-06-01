@@ -11,15 +11,10 @@ Algorithm:
 -- with this, work on putting everything together and effectively representing all of the data points
 '''
 
-#from helper_scripts.ModelHelper import ModelHelper
 from bin.DAFD_Interface import DAFD_Interface
 from tol_utils import *
-import random as r
-import itertools
-import time as t
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 from plot_utils import *
 
 
@@ -43,7 +38,7 @@ class ToleranceHelper:
     si_size = None
     si_gen = None
 
-    def __init__(self, feature_inputs, di=None, tolerance=10, feature_grid_size = 11, flow_grid_size = 51, pf_samples=100):
+    def __init__(self, feature_inputs, di=None, tolerance=10, feature_grid_size = 11, flow_grid_size = 11, pf_samples=100):
         self.features_normalized = feature_inputs
         self.features_denormalized = self.denormalize_features(self.features_normalized)
         self.tolerance = tolerance/100
@@ -73,9 +68,17 @@ class ToleranceHelper:
         self.feature_heatmap_gen = heatmaps_rate
         return heatmaps_size, heatmaps_rate
 
-    def flow_heatmaps(self, range_mult=2):
-        oil_range = [0.1, self.features_denormalized["oil_flow"]*range_mult]
-        water_range = [0.5, self.features_denormalized["water_flow"]*range_mult]
+    def flow_heatmaps(self, range_mult=None):
+        if range_mult is None:
+            range_mult = self.tolerance*2
+        oil_range = [self.features_denormalized["oil_flow"]*(1-range_mult),
+                     self.features_denormalized["oil_flow"]*(1+range_mult)]
+        water_range = [self.features_denormalized["water_flow"]*(1-range_mult),
+                       self.features_denormalized["water_flow"]*(1+range_mult)]
+        # if oil_range[0] < 0.05:
+        #     oil_range[0] = 0.05
+        # if water_range[0] < 0.5:
+        #     water_range[0] = 0.05
         flow_heatmap_size, flow_heatmap_gen = self.make_flow_heatmaps(oil_range, water_range)
         self.flow_heatmap_size = flow_heatmap_size
         self.flow_heatmap_gen  = flow_heatmap_gen
@@ -88,8 +91,8 @@ class ToleranceHelper:
 
 
     def make_flow_heatmaps(self, oil_range, water_range):
-        oil = np.around(make_grid_range(pd.Series(oil_range), self.flow_grid_size), 2)
-        water = np.around(make_grid_range(pd.Series(water_range), self.flow_grid_size), 2)
+        oil = np.around(make_grid_range(pd.Series(oil_range), self.flow_grid_size), 3)
+        water = np.around(make_grid_range(pd.Series(water_range), self.flow_grid_size), 3)
 
         grid_dict = {"oil_flow": oil, "water_flow": water}
         flow_heatmap_size = self.generate_heatmap_data(grid_dict, "droplet_size", percent=False)
@@ -102,7 +105,7 @@ class ToleranceHelper:
         tol_df_shuff = tol_df_shuff[[col for col in self.tol_df.columns if col != pc_g] + [pc_g]]
 
         heatmap_data_s = self._heatmap_loop(pc_s, tol_df_shuff, "droplet_size")
-        heatmap_data_g = self._heatmap_loop(pc_g, tol_df_shuff, "droplet_size")
+        heatmap_data_g = self._heatmap_loop(pc_g, tol_df_shuff, "generation_rate")
         return heatmap_data_s, heatmap_data_g
 
 
@@ -255,12 +258,5 @@ if __name__ == "__main__":
     fig = plot_flow_heatmaps(TH.flow_heatmap_size, TH.flow_heatmap_gen, TH.features_denormalized)
     plt.savefig("test_3_2.png")
 
-
-
-
     #TODO: Integrate into DAFD Workflow (cmd first, then think about GUI)
     #TODO: generate PDF
-    #TODO: Get a standard water/oil flow heatmap (across all ranges). DONE GET INTO WORKFLOW
-    #TODO: Add in any other images that are needed
-    #TODO: Just clean up the entire system, make it pythonic
-    #TODO: Eliminate unnecessary functions from the system
