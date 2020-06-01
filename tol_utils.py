@@ -6,6 +6,32 @@ import numpy as np
 from DAFD_TolTest import renormalize_features
 import time
 
+def make_grid_range(vals, size):
+    return np.linspace(vals.min(), vals.max(), size)
+
+def make_sample_grid(base_features, perturbations):
+    base_copy = base_features.copy()
+    pert_vals = list(perturbations.values())
+    options = itertools.product(pert_vals[0], pert_vals[1])
+    pts = []
+    grid = []
+    for option in options:
+        pts.append(list(option))
+        base_copy.update({key: option[i] for i, key in enumerate(perturbations.keys())})
+        grid.append(base_copy.copy())
+    return pts, grid
+
+
+
+def get_principal_feature(si, feature_names):
+    ST = list(si["ST"])
+    return feature_names[ST.index(max(ST))]
+
+
+def min_dist_idx(pt, array):
+    distances = [np.linalg.norm(pt - arraypt) for arraypt in array]
+    return distances.index(min(distances))
+
 
 def main_effect_analysis(data, inputs_df):
     size_vars = []
