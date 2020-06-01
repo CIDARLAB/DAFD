@@ -172,7 +172,7 @@ def get_principal_feature(si, feature_names):
     return feature_names[ST.index(max(ST))]
 
 
-def generate_heatmap_data(input_data, grid_dict,di, output):
+def generate_heatmap_data(input_data, grid_dict,di, output, percent=True):
     from stats_utils import pct_change
     key_names = list(grid_dict.keys())
     pts, grid = make_sample_grid(denormalize_features(input_data), grid_dict)
@@ -184,10 +184,11 @@ def generate_heatmap_data(input_data, grid_dict,di, output):
 
     heat_df = pd.DataFrame(pts, columns=[key_names[0], key_names[1], output])
     input_denormed = denormalize_features(input_data)
-    heat_df.loc[:, key_names[0]] = pct_change(heat_df.loc[:, key_names[0]], input_denormed[key_names[0]]).astype(int)
-    heat_df.loc[:, key_names[1]] = pct_change(heat_df.loc[:, key_names[1]], input_denormed[key_names[1]]).astype(int)
-    base_out = di.runForward(input_data)[output]
-    heat_df.loc[:, output] = pct_change(heat_df.loc[:, output], base_out)
+    if percent:
+        heat_df.loc[:, key_names[0]] = pct_change(heat_df.loc[:, key_names[0]], input_denormed[key_names[0]]).astype(int)
+        heat_df.loc[:, key_names[1]] = pct_change(heat_df.loc[:, key_names[1]], input_denormed[key_names[1]]).astype(int)
+        base_out = di.runForward(input_data)[output]
+        heat_df.loc[:, output] = pct_change(heat_df.loc[:, output], base_out)
     heat_pivot = heat_df.pivot(index=key_names[1], columns=key_names[0], values=output)
     return heat_pivot[::-1]
 
@@ -267,6 +268,49 @@ def plot_sobol_results(si_size, si_gen, names):
         ax.set_ylim(0, max(ylims)*1.1)
     return fig
 
+def flow_heatmaps(oil_range, water_range, grid_size):
+    oil = np.around(make_grid_range(pd.Series(oil_range), grid_size), 2)
+    water = np.around(make_grid_range(pd.Series(water_range), grid_size), 2)
+
+    grid_dict = {"oil_flow": oil, "water_flow": water}
+    size_df = generate_heatmap_data(test_features, grid_dict, di, "droplet_size", percent=False)
+    rate_df = generate_heatmap_data(test_features, grid_dict, di, "generation_rate", percent=False)
+    return size_df, rate_df
+
+
+def min_dist_idx(pt, array):
+    distances = [np.linalg.norm(pt - arraypt) for arraypt in array]
+    return distances.index(min(distances))
+
+
+def plot_flow_heatmaps(size_df, rate_df, user_inputs):
+    feat_denorm = denormalize_features(user_inputs)
+    oil_flow = feat_denorm["oil_flow"]
+    water_flow = feat_denorm["water_flow"]
+    oil_idx = min_dist_idx(oil_flow, size_df.columns)
+    water_idx = min_dist_idx(water_flow, size_df.index)
+
+    tick_spacing = int(np.floor(len(size_df.columns) / 10))
+    dx = 0.15
+    dy = 1
+    figsize = plt.figaspect(float(dx * 2) / float(dy * 1))
+    fig, axs = plt.subplots(1, 2, facecolor="w", figsize=figsize)
+    plt.subplots_adjust(wspace=0.3)
+    sns.set_style("white")
+    sns.set_context("notebook")
+    sns.set(font_scale=1.25)
+    sns.heatmap(size_df, cmap="viridis", vmin=0, ax=axs[0], xticklabels=tick_spacing,
+                yticklabels=tick_spacing, cbar_kws={'label': 'Droplet Size'})
+    axs[0].scatter(oil_idx, water_idx, marker="*", color="r", s=200)
+
+    plt.setp(axs[0], xlabel="Oil Flow Rate (ml/hr)", ylabel="Water Flow Rate (uL/min)")
+    sns.heatmap(rate_df, cmap="viridis", vmin=0, ax=axs[1], xticklabels=tick_spacing,
+                yticklabels=tick_spacing, cbar_kws={'label': 'Generation Rate'})
+    plt.setp(axs[1], xlabel="Oil Flow Rate (ml/hr)", ylabel="Water Flow Rate (uL/min)")
+    axs[1].scatter(oil_idx, water_idx, marker="*", color="r", s=200)
+    return fig
+
+
 if __name__ == "__main__":
     test_features = {
         "orifice_size": 150,
@@ -275,11 +319,11 @@ if __name__ == "__main__":
         "normalized_orifice_length": 2,
         "normalized_water_inlet": 2,
         "normalized_oil_inlet": 2,
-        "flow_rate_ratio": 22,
-        "capillary_number": 0.8
+        "flow_rate_ratio": 6,
+        "capillary_number": 0.05
     }
     tolerance = 10
-    sobol_samples = 1000
+    sobol_samples = 100
     grid_size = 11
 
     di = DAFD_Interface()
@@ -297,9 +341,20 @@ if __name__ == "__main__":
     fig = plot_heatmaps(hm_s, hm_g)
     plt.savefig("test.png")
 
+    feat_denormed = denormalize_features(test_features)
+    oil_range = [0.1, 2*feat_denormed["oil_flow"]]
+    water_range = [0.5, 2*feat_denormed["water_flow"]]
+    flow_grid = 51
+    size_df, rate_df = flow_heatmaps(oil_range, water_range, flow_grid)
+    fig = plot_flow_heatmaps(size_df, rate_df, test_features)
+    plt.savefig("test_3.png")
+
+
+
+
     #TODO: Integrate into DAFD Workflow (cmd first, then think about GUI)
     #TODO: generate PDF
-    #TODO: Get a standard water/oil flow heatmap (across all ranges)
+    #TODO: Get a standard water/oil flow heatmap (across all ranges). DONE GET INTO WORKFLOW
     #TODO: Add in any other images that are needed
     #TODO: Just clean up the entire system, make it pythonic
     #TODO: Eliminate unnecessary functions from the system
