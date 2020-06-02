@@ -62,15 +62,20 @@ class ToleranceHelper:
         self.file_base = base
         if self.flow_heatmap_size is None or self.flow_heatmap_gen is None:
             self.run_all()
-        f1 = plot_sobol_results(self.si_size, self.si_gen, self.feature_names)
-        plt.savefig(base + "_principal_features.png")
-
-        f2 = plot_heatmaps(self.feature_heatmap_size, self.feature_heatmap_gen)
-        plt.savefig(base + "_feature_heatmaps.png")
-
+        # f1 = plot_sobol_results(self.si_size, self.si_gen, self.feature_names)
+        # plt.savefig(base + "_principal_features.png")
+        #
+        # f2 = plot_heatmaps(self.feature_heatmap_size, self.feature_heatmap_gen)
+        # plt.savefig(base + "_feature_heatmaps.png")
+        f1 = None
+        f2 = None
         f3 = plot_flow_heatmaps(self.flow_heatmap_size, self.flow_heatmap_gen, self.features_denormalized)
         plt.savefig(base + "_flow_heatmaps.png")
-        return f1, f2, f3
+
+        f4 = plot_heatmaps_grid(self.feature_heatmap_size, self.feature_heatmap_gen, include_pcs=True,
+                                si=[self.si_size, self.si_gen], names=self.feature_names)
+        plt.savefig(base + "_GRID.png")
+        return f3, f4
 
     def sobol_analysis(self, calc_second_order=True):
         si_size, si_gen = self.principal_feature_analysis(calc_second_order=calc_second_order)
