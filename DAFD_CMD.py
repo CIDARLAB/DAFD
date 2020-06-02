@@ -3,6 +3,7 @@
 import sys
 import os
 from bin.DAFD_Interface import DAFD_Interface
+from DAFD_TolTest import ToleranceHelper
 
 di = DAFD_Interface()
 
@@ -11,6 +12,7 @@ desired_vals = {}
 features = {}
 
 stage = 0
+tolerance_test = False
 with open(os.path.dirname(os.path.abspath(__file__)) + "/" + "cmd_inputs.txt","r") as f:
 	for line in f:
 		line = line.strip()
@@ -22,6 +24,13 @@ with open(os.path.dirname(os.path.abspath(__file__)) + "/" + "cmd_inputs.txt","r
 			continue
 		elif line == "FORWARD":
 			stage=2
+			continue
+		elif line == "TOLERANCE":
+			tolerance_test=True
+			continue
+
+		if tolerance_test:
+			tolerance = float(line.split("=")[1])
 			continue
 
 		if stage == 0:
@@ -43,6 +52,8 @@ with open(os.path.dirname(os.path.abspath(__file__)) + "/" + "cmd_inputs.txt","r
 			param_name = line.split("=")[0]
 			param_val = float(line.split("=")[1])
 			features[param_name] = param_val
+
+
 
 if stage == 2:
 	fwd_results = di.runForward(features)
@@ -79,3 +90,13 @@ else:
 	result_str += str(fwd_results["inferred_droplet_size"]) + "|"
 
 	print(result_str)
+
+if tolerance_test:
+	if stage == 1:
+		tol_features = rev_results.copy()
+		del tol_features["point_source"]
+	else:
+		tol_features = features
+	TH = ToleranceHelper(tol_features, di=di, tolerance=tolerance)
+	TH.run_all()
+	TH.plot_all()
