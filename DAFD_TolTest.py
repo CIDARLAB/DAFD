@@ -95,10 +95,10 @@ class ToleranceHelper:
                      self.features_denormalized["oil_flow"]*(1+range_mult)]
         water_range = [self.features_denormalized["water_flow"]*(1-range_mult),
                        self.features_denormalized["water_flow"]*(1+range_mult)]
-        # if oil_range[0] < 0.05:
-        #     oil_range[0] = 0.05
-        # if water_range[0] < 0.5:
-        #     water_range[0] = 0.05
+        if oil_range[0] < 0.05:
+            oil_range[0] = 0.05
+        if water_range[0] < 0.05:
+            water_range[0] = 0.05
         flow_heatmap_size, flow_heatmap_gen = self.make_flow_heatmaps(oil_range, water_range)
         self.flow_heatmap_size = flow_heatmap_size
         self.flow_heatmap_gen  = flow_heatmap_gen
@@ -111,8 +111,10 @@ class ToleranceHelper:
 
 
     def make_flow_heatmaps(self, oil_range, water_range):
-        oil = np.around(make_grid_range(pd.Series(oil_range), self.flow_grid_size), 3)
-        water = np.around(make_grid_range(pd.Series(water_range), self.flow_grid_size), 3)
+        oil_rounding = int(np.abs(np.floor(np.log10((oil_range[1] - oil_range[0])/self.flow_grid_size))))
+        water_rounding = int(np.abs(np.floor(np.log10((water_range[1] - water_range[0])/self.flow_grid_size))))
+        oil = np.around(make_grid_range(pd.Series(oil_range), self.flow_grid_size), oil_rounding)
+        water = np.around(make_grid_range(pd.Series(water_range), self.flow_grid_size), water_rounding)
 
         grid_dict = {"oil_flow": oil, "water_flow": water}
         flow_heatmap_size = self.generate_heatmap_data(grid_dict, "droplet_size", percent=False)
@@ -150,10 +152,10 @@ class ToleranceHelper:
         heat_df = pd.DataFrame(pts, columns=[key_names[0], key_names[1], output])
         if percent:
             heat_df.loc[:, key_names[0]] = pct_change(heat_df.loc[:, key_names[0]],
-                                                      self.features_denormalized[key_names[0]]).astype(int)
+                                                      self.features_denormalized[key_names[0]]).astype(float)
             heat_df.loc[:, key_names[1]] = pct_change(heat_df.loc[:, key_names[1]],
-                                                      self.features_denormalized[key_names[1]]).astype(int)
-            base_out = di.runForward(self.features_normalized)[output]
+                                                      self.features_denormalized[key_names[1]]).astype(float)
+            base_out = self.di.runForward(self.features_normalized)[output]
             heat_df.loc[:, output] = pct_change(heat_df.loc[:, output], base_out)
         heat_pivot = heat_df.pivot(index=key_names[1], columns=key_names[0], values=output)
         return heat_pivot[::-1]

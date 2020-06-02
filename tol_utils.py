@@ -49,13 +49,6 @@ def main_effect_analysis(data, inputs_df):
     summary = summary.T
     return summary
 
-
-
-
-
-
-
-
 def to_list_of_dicts(samples, keys):
     sample_dict_list = []
     for sample in samples:
@@ -64,4 +57,4 @@ def to_list_of_dicts(samples, keys):
 
 
 def pct_change(array, base):
-    return round((array - base)/base * 100, 4)
+    return np.around((array - base)/base * 100, 3)

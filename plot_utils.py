@@ -34,19 +34,22 @@ def plot_heatmaps(hm_s, hm_g):
     dy = 0.8
     figsize = plt.figaspect(float(dx * 2) / float(dy * 8))
 
-    fig, axs = plt.subplots(2,len(hm_s), figsize=figsize, facecolor="w")
-    ca_pos_size = axs[0][6].get_position()
-    ca_pos_rate = axs[1][6].get_position()
-    cbar_ax_size = fig.add_axes([ca_pos_size.x0+0.1, ca_pos_size.y0+0.04, 0.01, 0.3])
-    cbar_ax_rate = fig.add_axes([ca_pos_rate.x0+0.1, ca_pos_rate.y0+0.04, 0.01, 0.3])
-    pad = 0.05  # Padding around the edge of the figure
-    xpad, ypad = dx * pad/2, dy * 3*pad
-    fig.subplots_adjust(left=xpad+0.02, right=(1 - xpad)-0.09, top=1 - ypad, bottom=ypad, wspace=0.6, hspace=0.6)
+    fig, axs = plt.subplots(2,len(hm_s)+1, constrained_layout=True,figsize=figsize, facecolor="w")
+    axs[0, -1].axis('off')
+    axs[1, -1].axis('off')
+    # fig.subplots_adjust(right =0.9)
+    ca_pos_size = axs[0][-1].get_position()
+    ca_pos_rate = axs[1][-1].get_position()
+    cbar_ax_size = fig.add_axes([ca_pos_size.x0+0.1, ca_pos_size.y0+0.15, 0.01, 0.3])
+    cbar_ax_rate = fig.add_axes([ca_pos_rate.x0+0.1, ca_pos_rate.y0+0.075, 0.01, 0.3])
+    # pad = 0.05  # Padding around the edge of the figure
+    # xpad, ypad = dx * pad/2, dy * 4*pad
+    # fig.subplots_adjust(left=xpad+0.06, right=(1 - xpad)-0.15, top=(1 - ypad/4), bottom=ypad*1.75, wspace=0.6, hspace=0.6)
     hms = [hm_s, hm_g]
     for i in range(len(hm_s)):
         plot_s = plot_heatmap(hm_s[i],axs,cbar_ax_size, "Droplet Size", row=0, col=i,vmax=size_max,map="viridis")
         plot_g = plot_heatmap(hm_g[i],axs,cbar_ax_rate, "Generation Rate", row=1, col=i,vmax=rate_max,map='plasma')
-    plt.gcf().subplots_adjust(bottom=0.15)
+    # plt.gcf().subplots_adjust(bottom=0.15)
     return fig
 
 
