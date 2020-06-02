@@ -37,6 +37,7 @@ class ToleranceHelper:
     pf_samples = None
     si_size = None
     si_gen = None
+    file_base = None
 
     def __init__(self, feature_inputs, di=None, tolerance=10, feature_grid_size = 11, flow_grid_size = 11, pf_samples=100):
         self.features_normalized = feature_inputs
@@ -52,7 +53,26 @@ class ToleranceHelper:
         self.flow_grid_size = flow_grid_size
         self.pf_samples = pf_samples
 
-    def sobol_analysis(self, calc_second_order=False):
+    def run_all(self):
+        self.sobol_analysis()
+        self.feature_heatmaps()
+        self.flow_heatmaps()
+
+    def plot_all(self, base="toltest"):
+        self.file_base = base
+        if self.flow_heatmap_size is None or self.flow_heatmap_gen is None:
+            self.run_all()
+        f1 = plot_sobol_results(self.si_size, self.si_gen, self.feature_names)
+        plt.savefig(base + "_principal_features.png")
+
+        f2 = plot_heatmaps(self.feature_heatmap_size, self.feature_heatmap_gen)
+        plt.savefig(base + "_feature_heatmaps.png")
+
+        f3 = plot_flow_heatmaps(self.flow_heatmap_size, self.flow_heatmap_gen, self.features_denormalized)
+        plt.savefig(base + "_flow_heatmaps.png")
+        return f1, f2, f3
+
+    def sobol_analysis(self, calc_second_order=True):
         si_size, si_gen = self.principal_feature_analysis(calc_second_order=calc_second_order)
         self.si_size = si_size
         self.si_gen = si_gen
@@ -246,17 +266,9 @@ if __name__ == "__main__":
     }
     di = DAFD_Interface()
     TH = ToleranceHelper(test_features, di=di)
-    TH.sobol_analysis()
-    TH.feature_heatmaps()
-    TH.flow_heatmaps()
-    fig = plot_sobol_results(TH.si_size, TH.si_gen, TH.feature_names)
-    plt.savefig("test2_2.png")
+    TH.run_all()
+    TH.plot_all()
 
-    fig = plot_heatmaps(TH.feature_heatmap_size, TH.feature_heatmap_gen)
-    plt.savefig("test_2.png")
-
-    fig = plot_flow_heatmaps(TH.flow_heatmap_size, TH.flow_heatmap_gen, TH.features_denormalized)
-    plt.savefig("test_3_2.png")
 
     #TODO: Integrate into DAFD Workflow (cmd first, then think about GUI)
     #TODO: generate PDF
