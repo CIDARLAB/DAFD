@@ -267,7 +267,7 @@ if __name__ == "__main__":
         "capillary_number": 0.05
     }
     di = DAFD_Interface()
-    TH = ToleranceHelper(test_features, di=di)
+    TH = ToleranceHelper(test_features, di=di, tolerance=2)
     TH.run_all()
     TH.plot_all()
 
