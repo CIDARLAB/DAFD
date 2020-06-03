@@ -77,6 +77,10 @@ class ToleranceHelper:
         plt.savefig(base + "_GRID.png")
         return f3, f4
 
+    def generate_report(self):
+        import os
+        os.system('cmd /k "pweave -f md2html Tolerance_Report.pmd"')
+
     def sobol_analysis(self, calc_second_order=True):
         si_size, si_gen = self.principal_feature_analysis(calc_second_order=calc_second_order)
         self.si_size = si_size
@@ -275,6 +279,7 @@ if __name__ == "__main__":
     TH = ToleranceHelper(test_features, di=di, tolerance=2)
     TH.run_all()
     TH.plot_all()
+    TH.generate_report()
 
 
     #TODO: Integrate into DAFD Workflow (cmd first, then think about GUI)
