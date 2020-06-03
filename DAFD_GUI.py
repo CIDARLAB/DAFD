@@ -41,6 +41,7 @@ class DAFD_GUI:
 		inputs_header.configure(background="white")
 
 		self.entries_dict = {}
+		self.tol_var = 0
 
 		for param_name in self.di.input_headers:
 			param_frame = tkinter.Frame(inputs_frame)
@@ -91,6 +92,42 @@ class DAFD_GUI:
 			param_entry.configure(background="white")
 			self.entries_dict[param_name] = param_entry
 
+		# Pack Tolerance Study Together
+		tolerance_frame = tkinter.Frame(self.root, pady=20)
+		tolerance_frame.pack(side="top")
+		tolerance_frame.configure(background="white")
+
+		tolerance_header = tkinter.Label(tolerance_frame)
+		tolerance_header.pack(side="top")
+		tolerance_header["text"] = "Tolerance Options"
+		tolerance_header.config(font=("Times", 20))
+		tolerance_header.configure(background="white")
+
+		tol_frame = tkinter.Frame(tolerance_frame)
+		tol_frame.pack(side="top")
+		tol_frame.configure(background="white")
+		tol_label = tkinter.Label(tol_frame,width=40,anchor="e")
+		tol_label.pack(side="left")
+		tol_label["text"] = "Perform Tolerance Study? "
+		tol_label.configure(background="white")
+		check_var = tkinter.IntVar(value=0)
+		tol_entry = tkinter.Checkbutton(tol_frame, variable=check_var)
+		tol_entry.pack(side="left")
+		tol_entry.configure(background="white")
+		self.entries_dict["tolerance_test"] = tol_entry
+
+
+		tol_frame = tkinter.Frame(tolerance_frame)
+		tol_frame.pack(side="top")
+		tol_frame.configure(background="white")
+		tol_label = tkinter.Label(tol_frame,width=40,anchor="e")
+		tol_label.pack(side="left")
+		tol_label["text"] = "Tolerance (1-50, default 10) : "
+		tol_label.configure(background="white")
+		tol_entry = tkinter.Entry(tol_frame)
+		tol_entry.pack(side="left")
+		tol_entry.configure(background="white")
+		self.entries_dict["tolerance"] = tol_entry
 
 
 		# Pack the results together
@@ -159,18 +196,39 @@ class DAFD_GUI:
 
 		# Return and display the results
 		results = self.di.runInterp(desired_vals,constraints)
+
+		# Run Tolerance Test if Specified
+		if bool(self.entries_dict["tolerance_test"].getvar(name="PY_VAR0")):
+			from DAFD_TolTest import ToleranceHelper
+			tolerance = self.entries_dict["tolerance"].get()
+			if tolerance == "":
+				tolerance = 10
+			tol_features = results.copy()
+			del tol_features["point_source"]
+			TH = ToleranceHelper(tol_features, di=self.di, tolerance=float(tolerance))
+			TH.run_all()
+			TH.plot_all()
+
 		print(self.di.runForward(results))
 		self.results_label["text"] = "\n".join([x + " : " + str(results[x]) for x in self.di.input_headers])
 	
 	def runForward(self):
 		"""Predict the outputs based on the chip geometry (Normal feed-forward network) """
 
-		#Get all the chip geometry values
+		# Get all the chip geometry values
 		features = {x: float(self.entries_dict[x].get()) for x in self.di.input_headers}
 		results = self.di.runForward(features)
 		self.results_label["text"] = "\n".join([x + " : " + str(results[x]) for x in results])
 
-
+		# Run Tolerance Test if Specified
+		if bool(self.entries_dict["tolerance_test"].getvar(name="PY_VAR0")):
+			from DAFD_TolTest import ToleranceHelper
+			tolerance = self.entries_dict["tolerance"].get()
+			if tolerance == "":
+				tolerance = 10
+			TH = ToleranceHelper(features, di=self.di, tolerance=float(tolerance))
+			TH.run_all()
+			TH.plot_all()
 
 #Executed when script is called from console
 DAFD_GUI()
