@@ -208,6 +208,7 @@ class DAFD_GUI:
 			TH = ToleranceHelper(tol_features, di=self.di, tolerance=float(tolerance))
 			TH.run_all()
 			TH.plot_all()
+			TH.generate_report()
 
 		print(self.di.runForward(results))
 		self.results_label["text"] = "\n".join([x + " : " + str(results[x]) for x in self.di.input_headers])
@@ -229,6 +230,7 @@ class DAFD_GUI:
 			TH = ToleranceHelper(features, di=self.di, tolerance=float(tolerance))
 			TH.run_all()
 			TH.plot_all()
+			TH.generate_report()
 
 #Executed when script is called from console
 DAFD_GUI()

@@ -16,12 +16,14 @@ from tol_utils import *
 import pandas as pd
 import matplotlib.pyplot as plt
 from plot_utils import *
-
+import os
+import pickle
 
 class ToleranceHelper:
     """This class contains the main functions needed for the tolerance study."""
     features_normalized = {}
     features_denormalized = {}
+    warnings = []
     tolerance = None
     di = None
     tol_df = None
@@ -78,8 +80,18 @@ class ToleranceHelper:
         return f3, f4
 
     def generate_report(self):
-        import os
+        to_report = {"features": self.features_denormalized,
+                     "tolerance": self.tolerance,
+                     "base_performance": self.di.runForward(self.features_normalized),
+                     "Fluids": {"dispersed": "Water",
+                                "continuous": "Mineral Oil",
+                                "surfactant": "5% V/V Span 80"},
+                     "Warnings": self.warnings
+                     }
+        pickle.dump(to_report, open( "tol.p", "wb" ))
         os.system('cmd /k "pweave -f md2html Tolerance_Report.pmd"')
+
+
 
     def sobol_analysis(self, calc_second_order=True):
         si_size, si_gen = self.principal_feature_analysis(calc_second_order=calc_second_order)

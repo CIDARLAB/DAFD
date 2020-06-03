@@ -1,0 +1,58 @@
+% DAFD Tolerance Report
+% Please cite (doi number)
+% June 3rd, 2020
+
+# Introduction
+Thank you for using DAFD, the first machine-learning design automation tool for droplet microfluidics. Below is more
+information regarding your design.
+
+### Assembly Information
+![figure 1](drop_assembly.png)
+
+# User Design Overview
+### System Information:
+```python echo=False
+import pickle
+from IPython.display import Markdown as md
+import numpy as np
+run_info = pickle.load(open( "tol.p", "rb" ))
+
+def make_list_text(input_dict):
+    keynames = [str.capitalize(key).replace("_", " ") for key in input_dict.keys()]
+
+    values = []
+    for value in input_dict.values():
+        if type(value) is str:
+            values.append(value)
+        else:
+            values.append(np.around(value,3))
+    output = ""
+    for i in range(len(keynames)):
+        output += "<b>{}:</b> {} &ensp;".format(keynames[i], values[i])
+    return output
+
+feature_str = make_list_text(run_info["Fluids"])
+md(feature_str)
+```
+
+
+### Inputs:
+```python echo=False
+feature_str = make_list_text(run_info["features"])
+md(feature_str)
+```
+
+###Outputs:
+```python echo=False
+outputs = run_info["base_performance"]
+del outputs["oil_rate"]
+del outputs["water_rate"]
+output_str = make_list_text(outputs)
+md(output_str)
+```
+
+# Feature Grid:
+![figure 2](toltest_GRID.png)
+
+# Flow Grid:
+![figure 3](toltest_flow_heatmaps.png)

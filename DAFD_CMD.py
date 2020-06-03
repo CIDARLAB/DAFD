@@ -100,3 +100,4 @@ if tolerance_test:
 	TH = ToleranceHelper(tol_features, di=di, tolerance=tolerance)
 	TH.run_all()
 	TH.plot_all()
+	TH.generate_report()
