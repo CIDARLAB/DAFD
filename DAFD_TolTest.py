@@ -83,12 +83,12 @@ class ToleranceHelper:
         to_report = {"features": self.features_denormalized,
                      "tolerance": self.tolerance,
                      "base_performance": self.di.runForward(self.features_normalized),
-                     "Fluids": {"dispersed": "Water",
-                                "continuous": "Mineral Oil",
-                                "surfactant": "5% V/V Span 80"},
+                     "Fluids": {"Dispersed phase": "DI Water",
+                                "Continuous phase": "350 nf Mineral oil (viscosity: 57.2 mPa.s )",
+                                "Surfactant": "5% V/V Span 80"},
                      "Warnings": self.warnings
                      }
-        pickle.dump(to_report, open( "tol.p", "wb" ))
+        pickle.dump(to_report, open("tol.p", "wb" ))
         os.system('cmd /k "pweave -f md2html Tolerance_Report.pmd"')
 
 

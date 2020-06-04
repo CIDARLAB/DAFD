@@ -1,58 +1,162 @@
-% DAFD Tolerance Report
+% DAFD Design Report
 % Please cite (doi number)
-% June 3rd, 2020
+% June 4th, 2020
 
-# Introduction
-Thank you for using DAFD, the first machine-learning design automation tool for droplet microfluidics. Below is more
-information regarding your design.
-
-### Assembly Information
-![figure 1](drop_assembly.png)
-
-# User Design Overview
-### System Information:
 ```python echo=False
-import pickle
-from IPython.display import Markdown as md
-import numpy as np
-run_info = pickle.load(open( "tol.p", "rb" ))
+#This is a script to put all default html templates (such as tables) and functions
+top = """
+<html>
+<head>
+<style>
+table, th, td {
+  border: 2px solid black;
+  border-collapse: collapse;
+  text-align: center;
+    font-size: 14px;
+    padding: 4px;
+}
+th {
+    background-color: #c0c0c0;
+}
 
-def make_list_text(input_dict):
-    keynames = [str.capitalize(key).replace("_", " ") for key in input_dict.keys()]
+</style>
+</head>
+<body>"""
+
+bottom = """</body>
+</html>"""
+
+def make_list_text(input_dict, num=3):
+    keynames = list(input_dict.keys())
 
     values = []
     for value in input_dict.values():
         if type(value) is str:
             values.append(value)
         else:
-            values.append(np.around(value,3))
+            values.append(np.around(value,num))
     output = ""
     for i in range(len(keynames)):
         output += "<b>{}:</b> {} &ensp;".format(keynames[i], values[i])
     return output
 
-feature_str = make_list_text(run_info["Fluids"])
-md(feature_str)
+def make_table_rows(input_dict, num=3):
+    keynames = list(input_dict.keys())
+
+    values = []
+
+    for value in input_dict.values():
+        if type(value) is str:
+            values.append(value)
+        else:
+            values.append(np.around(value,num))
+    headers = "<tr> \n"
+    vals = "<tr> \n"
+    for i in range(len(keynames)):
+        headers += "<th>{}</th> \n".format(keynames[i])
+        vals += "<td>{}</td> \n".format(values[i])
+    headers += "</tr> \n"
+    vals += "</tr> \n"
+
+    return headers, vals
 ```
 
+Thank you for using DAFD, the first machine-learning design automation tool for droplet microfluidics. Below is a summary
+of your design, along with helpful information in troubleshooting possible fabrication errors.
 
-### Inputs:
+### Assembly Information
+![figure 1](drop_assembly.png)
+
+# Droplet Generator Overview
+### Fluid Properties:
 ```python echo=False
-feature_str = make_list_text(run_info["features"])
-md(feature_str)
+import pickle
+from IPython.display import Markdown as md
+import numpy as np
+run_info = pickle.load(open( "tol.p", "rb" ))
+
+headers, vals = make_table_rows(run_info["Fluids"])
+table = "<table style=\"width:60%;margin-left:auto;margin-right:auto;\"> \n"
+table += headers + vals + "</table> \n"
+md(top + table + bottom)
 ```
 
-###Outputs:
+### Droplet Generator Design:
 ```python echo=False
-outputs = run_info["base_performance"]
+features = run_info["features"].copy()
+microns = ["orifice_size", "depth", "outlet_width", "orifice_length", "water_inlet", "oil_inlet"]
+mlhr = ["oil_flow"]
+ulmin = ["water_flow"]
+for key in list(features.keys()):
+    if key in microns:
+        features[str.capitalize(key).replace("_", " ") + " (\u03BCm)"] = features.pop(key)
+    elif key in mlhr:
+        features[str.capitalize(key).replace("_", " ") + " (mL/hr)"] = features.pop(key)
+    else:
+        features[str.capitalize(key).replace("_", " ") + " (\u03BCL/min)"] = features.pop(key)
+
+headers, vals = make_table_rows(features)
+var_types = """
+    <tr>
+        <th colspan="6">Geometric Parameters:</th>
+        <th colspan="2">Flow Parameters:</th>
+    </tr>
+"""
+table = "<table style=\"width:100%;margin-left:auto;margin-right:auto;\"> \n"
+table += var_types + headers + vals + "</table> \n"
+md(table)
+```
+
+### Expected Performance:
+```python echo=False
+
+outputs = run_info["base_performance"].copy()
 del outputs["oil_rate"]
 del outputs["water_rate"]
-output_str = make_list_text(outputs)
-md(output_str)
+outputs["Generation rate (Hz)"] = outputs.pop("generation_rate")
+outputs["Droplet size (\u03BCm)"] = outputs.pop("droplet_size")
+outputs["Inferred droplet size (\u03BCm)"] = outputs.pop("inferred_droplet_size")
+
+for key in list(outputs.keys()):
+    if key == "regime" or key == "Regime":
+        if int(outputs[key]) == 1:
+            outputs["Regime"] = "Dripping"
+        else:
+            outputs["Regime"] = "Jetting"
+        del outputs[key]
+    else:
+        outputs[key] = float(outputs[key])
+headers, vals = make_table_rows(outputs, num=1)
+table = "<table style=\"width:60%;margin-left:auto;margin-right:auto;\"> \n"
+table += headers + vals + "</table> \n"
+md(table)
 ```
 
-# Feature Grid:
+
+# Tolerances of Design:
+Using your input tolerance of **<%run_info["tolerance"]*100%>%**, variance-based sensitivity analysis was performed to identify the principal design features
+for droplet size and generation rate to better troubleshoot any issues from device fabrication (top left bar plots).
+Large difference between predicted and observed behavior could be due to this. These principal features were then
+plotted against all other design inputs, to visualize their relative effects on performance output. More information about
+the underlying analysis can be found [here](https://en.wikipedia.org/wiki/Variance-based_sensitivity_analysis).
+
+*Note: If you see multiple distinct regions (sharp jumps) within the heatmaps, then your current performance is right
+at the regime boundary. Droplet generation will be unstable, and therefore we recommend re-running DAFD with different
+constraints*
 ![figure 2](toltest_GRID.png)
 
-# Flow Grid:
+# Flow Rate Map:
+To troubleshoot your device performance without fabricating a brand new device, below are heatmaps visualizing the performance
+changes caused by **only** changing flow rates. This provides a visual guide to understanding how changing these rates
+affect both droplet size and generation rate, rather than doing so through trial and error.
 ![figure 3](toltest_flow_heatmaps.png)
+
+### Questions? Contact Us:
+Corresponding Authors: Ali Lashkaripour ([lashkari@bu.edu](lashkari@bu.edu)) & Prof. Douglas Densmore ([dougd@bu.edu](dougd@bu.edu))
+
+<html>
+<div id="content">
+    <img src="all_logos.png" class="ribbon"/>
+</div>
+</html>
+
