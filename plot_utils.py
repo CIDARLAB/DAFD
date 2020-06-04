@@ -92,7 +92,7 @@ def plot_flow_heatmaps(size_df, rate_df, feat_denorm):
                 yticklabels=tick_spacing, cbar_kws={'label': 'Droplet Size (um)'})
     axs[0].tick_params(axis='x', labelrotation=30)
     axs[0].scatter(len(size_df.columns)/2, len(size_df.columns)/2, marker="*", color="w", s=200)
-    plt.setp(axs[0], xlabel="Oil Flow Rate (ml/hr)", ylabel="Water Flow Rate (uL/min)")
+    plt.setp(axs[0], xlabel="Oil Flow Rate (ml/hr)", ylabel="Water Flow Rate (uL/min)", )
 
     sns.heatmap(rate_df, cmap="plasma", ax=axs[1], xticklabels=tick_spacing,
                 yticklabels=tick_spacing, cbar_kws={'label': 'Generation Rate (Hz)'})
@@ -173,4 +173,53 @@ def plot_heatmaps_grid(hm_s, hm_g, include_pcs=False, si=None, names=None):
             plt.setp(ax, ylabel=("Total-Effect "+output[i]))
             bar_ax[i].tick_params(axis='x', labelrotation=90)
             ax.set_ylim(0, 1.1)
+    return fig
+def plot_half_heatmaps_grid(hm, output, include_pcs=False, si=None, names=None):
+    if output == "Droplet Size":
+        cmap = "viridis"
+    else:
+        cmap = "plasma"
+    SMALL_SIZE = 7
+    MEDIUM_SIZE = 8
+    BIGGER_SIZE = 12
+
+    plt.rc('font', size=SMALL_SIZE)  # controls default text sizes
+    plt.rc('axes', titlesize=SMALL_SIZE)  # fontsize of the axes title
+    plt.rc('axes', labelsize=MEDIUM_SIZE)  # fontsize of the x and y labels
+    plt.rc('xtick', labelsize=SMALL_SIZE)  # fontsize of the tick labels
+    plt.rc('ytick', labelsize=SMALL_SIZE)  # fontsize of the tick labels
+    plt.rc('legend', fontsize=SMALL_SIZE)  # legend fontsize
+    plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+
+    hm_max = max([np.abs(df).max().max() for df in hm])
+    #rate_max = max([np.abs(df).max().max() for df in hm_g])
+
+    figsize = plt.figaspect(566/839/2)
+
+    fig, axs = plt.subplots(2, 4, figsize=figsize, facecolor="w")
+    cbar_ax = fig.add_axes([0.93, 0.2, 0.015, 0.6])
+    #cbar_ax_rate = fig.add_axes([0.93, 0.15, 0.01, 0.3])
+    for i in range(len(hm)):
+        plot_s = plot_heatmap_grid(hm[i],axs,cbar_ax, output, row=int(np.floor((i+1)/4)), col=(i+1)%4, vmax=hm_max,map=cmap)
+    #    plot_g = plot_heatmap_grid(hm_g[i],axs,cbar_ax_rate, "Generation Rate", row=int(np.floor((i+1)/4))+2, col=(i+1)%4,vmax=rate_max,map='plasma')
+    plt.subplots_adjust(left=0.05, bottom=0.12, right=0.9, top=0.96, wspace=0.29, hspace=0.44)
+
+    if include_pcs:
+        edited_names = []
+        for name in names:
+            name = str.capitalize(name)
+            name = name.replace("_", "\n")
+            edited_names.append(name)
+        if output == "Droplet Size":
+            yax_str = "(Size)"
+            color = "#1f968b"
+        else:
+            yax_str = "(Rate)"
+            color = "#c03a83"
+        sns.set_style("white")
+        ax = axs[0][0]
+        sns.barplot(edited_names, si["ST"], ax=ax, color=color)
+        plt.setp(ax, ylabel=("Total-Effect "+yax_str))
+        ax.tick_params(axis='x', labelrotation=90)
+        ax.set_ylim(0, 1.1)
     return fig

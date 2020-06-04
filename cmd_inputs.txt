@@ -1,5 +1,9 @@
 CONSTRAINTS
 regime=1:1
+aspect_ratio=1:1
+normalized_water_inlet=2:2
 DESIRED_VALS
-generation_rate=150
-droplet_size=150
+generation_rate=100
+droplet_size=50
+TOLERANCE
+tolerance=10

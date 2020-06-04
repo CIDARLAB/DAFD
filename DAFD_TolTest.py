@@ -69,15 +69,19 @@ class ToleranceHelper:
         #
         # f2 = plot_heatmaps(self.feature_heatmap_size, self.feature_heatmap_gen)
         # plt.savefig(base + "_feature_heatmaps.png")
-        f1 = None
-        f2 = None
-        f3 = plot_flow_heatmaps(self.flow_heatmap_size, self.flow_heatmap_gen, self.features_denormalized)
+
+
+        f2 = plot_half_heatmaps_grid(self.feature_heatmap_size, "Droplet Size", include_pcs=True, si=self.si_size,
+                                     names=self.feature_names)
+        plt.savefig(base + "_SizeGRID.png")
+        f3 = plot_half_heatmaps_grid(self.feature_heatmap_gen, "Generation Rate", include_pcs=True, si=self.si_gen,
+                                     names=self.feature_names)
+        plt.savefig(base + "_RateGRID.png")
+
+        f1 = plot_flow_heatmaps(self.flow_heatmap_size, self.flow_heatmap_gen, self.features_denormalized)
         plt.savefig(base + "_flow_heatmaps.png")
 
-        f4 = plot_heatmaps_grid(self.feature_heatmap_size, self.feature_heatmap_gen, include_pcs=True,
-                                si=[self.si_size, self.si_gen], names=self.feature_names)
-        plt.savefig(base + "_GRID.png")
-        return f3, f4
+        return f1, f2, f3
 
     def generate_report(self):
         to_report = {"features": self.features_denormalized,
