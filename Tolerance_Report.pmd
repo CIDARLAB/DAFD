@@ -136,20 +136,24 @@ md(table)
 # Tolerances of Design:
 Using your input tolerance of **<%run_info["tolerance"]*100%>%**, variance-based sensitivity analysis was performed to identify the principal design features
 for droplet size and generation rate to better troubleshoot any issues from device fabrication (top left bar plots).
-Large difference between predicted and observed behavior could be due to this. These principal features were then
+Large difference between predicted and observed performance could be due to this. These principal features were then
 plotted against all other design inputs, to visualize their relative effects on performance output. More information about
 the underlying analysis can be found [here](https://en.wikipedia.org/wiki/Variance-based_sensitivity_analysis).
 
 *Note: If you see multiple distinct regions (sharp jumps) within the heatmaps, then your current performance is right
-at the regime boundary. Droplet generation will be unstable, and therefore we recommend re-running DAFD with different
+at the regime change boundary. Droplet generation could be unstable, and therefore we recommend re-running DAFD with different
 constraints*
-![figure 2](toltest_GRID.png)
+### Droplet Size:
+![figure 2](toltest_SizeGRID.png)
+
+### Generation Rate:
+![figure 3](toltest_RateGRID.png)
 
 # Flow Rate Map:
 To troubleshoot your device performance without fabricating a brand new device, below are heatmaps visualizing the performance
 changes caused by **only** changing flow rates. This provides a visual guide to understanding how changing these rates
 affect both droplet size and generation rate, rather than doing so through trial and error.
-![figure 3](toltest_flow_heatmaps.png)
+![figure 4](toltest_flow_heatmaps.png)
 
 ### Questions? Contact Us:
 Corresponding Authors: Ali Lashkaripour ([lashkari@bu.edu](lashkari@bu.edu)) & Prof. Douglas Densmore ([dougd@bu.edu](dougd@bu.edu))
