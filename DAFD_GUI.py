@@ -1,6 +1,4 @@
 """A graphical interface to DAFD that does not require website hosting"""
-from core_logic.ForwardModel import ForwardModel
-from core_logic.InterModel import InterModel
 from helper_scripts.ModelHelper import ModelHelper
 import tkinter
 from PIL import ImageTk, Image
@@ -199,13 +197,13 @@ class DAFD_GUI:
 
 		# Run Tolerance Test if Specified
 		if bool(self.entries_dict["tolerance_test"].getvar(name="PY_VAR0")):
-			from DAFD_TolTest import ToleranceHelper
+			from tolerance_study.TolHelper import TolHelper
 			tolerance = self.entries_dict["tolerance"].get()
 			if tolerance == "":
 				tolerance = 10
 			tol_features = results.copy()
 			del tol_features["point_source"]
-			TH = ToleranceHelper(tol_features, di=self.di, tolerance=float(tolerance))
+			TH = TolHelper(tol_features, di=self.di, tolerance=float(tolerance))
 			TH.run_all()
 			TH.plot_all()
 			TH.generate_report()
@@ -223,11 +221,11 @@ class DAFD_GUI:
 
 		# Run Tolerance Test if Specified
 		if bool(self.entries_dict["tolerance_test"].getvar(name="PY_VAR0")):
-			from DAFD_TolTest import ToleranceHelper
+			from tolerance_study.TolHelper import TolHelper
 			tolerance = self.entries_dict["tolerance"].get()
 			if tolerance == "":
 				tolerance = 10
-			TH = ToleranceHelper(features, di=self.di, tolerance=float(tolerance))
+			TH = TolHelper(features, di=self.di, tolerance=float(tolerance))
 			TH.run_all()
 			TH.plot_all()
 			TH.generate_report()

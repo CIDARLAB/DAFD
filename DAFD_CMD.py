@@ -1,9 +1,8 @@
 #!/usr/bin/python3
 
-import sys
 import os
 from bin.DAFD_Interface import DAFD_Interface
-from DAFD_TolTest import ToleranceHelper
+from tolerance_study.TolHelper import TolHelper
 
 di = DAFD_Interface()
 
@@ -97,7 +96,7 @@ if tolerance_test:
 		del tol_features["point_source"]
 	else:
 		tol_features = features
-	TH = ToleranceHelper(tol_features, di=di, tolerance=tolerance)
+	TH = TolHelper(tol_features, di=di, tolerance=tolerance)
 	TH.run_all()
 	TH.plot_all()
 	TH.generate_report()

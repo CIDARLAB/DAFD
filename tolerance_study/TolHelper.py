@@ -1,25 +1,10 @@
-'''
-This script will be a placeholder for integrating a tolerance tester into the DAFD workflow.
-
-Inputs: User parameters, and a set tolerance
-
-Algorithm:
-- Take in input specifications and tolerance, calculate upper and lower bounds
-- With this, mash them together and calculate all combinations (there's a set version for this somewhere)
-- With these combinations, Brute force DAFD evaluating every single one
-- DATA VIZ NEEDED NEXT:
--- with this, work on putting everything together and effectively representing all of the data points
-'''
-
 from bin.DAFD_Interface import DAFD_Interface
-from tol_utils import *
-import pandas as pd
-import matplotlib.pyplot as plt
-from plot_utils import *
+from tolerance_study.plot_utils import *
 import os
 import pickle
 
-class ToleranceHelper:
+
+class TolHelper:
     """This class contains the main functions needed for the tolerance study."""
     features_normalized = {}
     features_denormalized = {}
@@ -73,13 +58,13 @@ class ToleranceHelper:
 
         f2 = plot_half_heatmaps_grid(self.feature_heatmap_size, "Droplet Size", include_pcs=True, si=self.si_size,
                                      names=self.feature_names)
-        plt.savefig(base + "_SizeGRID.png")
+        plt.savefig("tolerance_study/" + base + "_SizeGRID.png")
         f3 = plot_half_heatmaps_grid(self.feature_heatmap_gen, "Generation Rate", include_pcs=True, si=self.si_gen,
                                      names=self.feature_names)
-        plt.savefig(base + "_RateGRID.png")
+        plt.savefig("tolerance_study/" + base + "_RateGRID.png")
 
         f1 = plot_flow_heatmaps(self.flow_heatmap_size, self.flow_heatmap_gen, self.features_denormalized)
-        plt.savefig(base + "_flow_heatmaps.png")
+        plt.savefig("tolerance_study/" + base + "_flow_heatmaps.png")
 
         return f1, f2, f3
 
@@ -92,8 +77,8 @@ class ToleranceHelper:
                                 "Surfactant": "5% V/V Span 80"},
                      "Warnings": self.warnings
                      }
-        pickle.dump(to_report, open("tol.p", "wb" ))
-        os.system('cmd /k "pweave -f md2html Tolerance_Report.pmd"')
+        pickle.dump(to_report, open("tolerance_study/tol.p", "wb"))
+        os.system('cmd /k "pweave -f md2html tolerance_study/Tolerance_Report.pmd"')
 
 
 
@@ -278,25 +263,3 @@ class ToleranceHelper:
             "capillary_number":  round(Ca_num, 5)
             }
         return ret_dict
-
-
-if __name__ == "__main__":
-    test_features = {
-        "orifice_size": 150,
-        "aspect_ratio": 1,
-        "expansion_ratio": 2,
-        "normalized_orifice_length": 2,
-        "normalized_water_inlet": 2,
-        "normalized_oil_inlet": 2,
-        "flow_rate_ratio": 6,
-        "capillary_number": 0.05
-    }
-    di = DAFD_Interface()
-    TH = ToleranceHelper(test_features, di=di, tolerance=2)
-    TH.run_all()
-    TH.plot_all()
-    TH.generate_report()
-
-
-    #TODO: Integrate into DAFD Workflow (cmd first, then think about GUI)
-    #TODO: generate PDF

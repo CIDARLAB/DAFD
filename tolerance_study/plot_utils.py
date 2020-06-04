@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
-from tol_utils import *
+from tolerance_study.tol_utils import *
 
 
 def plot_results(outputs, original, tolerance):
@@ -79,6 +79,18 @@ def plot_sobol_results(si_size, si_gen, names):
 
 
 def plot_flow_heatmaps(size_df, rate_df, feat_denorm):
+    SMALL_SIZE = 12
+    MEDIUM_SIZE = 8
+    BIGGER_SIZE = 16
+
+    plt.rc('font', size=SMALL_SIZE)  # controls default text sizes
+    plt.rc('axes', titlesize=SMALL_SIZE)  # fontsize of the axes title
+    plt.rc('axes', labelsize=BIGGER_SIZE)  # fontsize of the x and y labels
+    plt.rc('xtick', labelsize=SMALL_SIZE)  # fontsize of the tick labels
+    plt.rc('ytick', labelsize=SMALL_SIZE)  # fontsize of the tick labels
+    plt.rc('legend', fontsize=SMALL_SIZE)  # legend fontsize
+    plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+
     tick_spacing = int(np.floor(len(size_df.columns) / 10))
     dx = 0.15
     dy = 1
@@ -102,7 +114,7 @@ def plot_flow_heatmaps(size_df, rate_df, feat_denorm):
     return fig
 
 def plot_heatmap_grid(data, axs,cbar_ax,label, row=0, col=0, vmax=None, map="magma"):
-    SMALL_SIZE = 7
+    SMALL_SIZE = 9
     MEDIUM_SIZE = 8
     BIGGER_SIZE = 12
 
@@ -179,13 +191,13 @@ def plot_half_heatmaps_grid(hm, output, include_pcs=False, si=None, names=None):
         cmap = "viridis"
     else:
         cmap = "plasma"
-    SMALL_SIZE = 7
+    SMALL_SIZE = 9
     MEDIUM_SIZE = 8
     BIGGER_SIZE = 12
 
     plt.rc('font', size=SMALL_SIZE)  # controls default text sizes
     plt.rc('axes', titlesize=SMALL_SIZE)  # fontsize of the axes title
-    plt.rc('axes', labelsize=MEDIUM_SIZE)  # fontsize of the x and y labels
+    plt.rc('axes', labelsize=BIGGER_SIZE)  # fontsize of the x and y labels
     plt.rc('xtick', labelsize=SMALL_SIZE)  # fontsize of the tick labels
     plt.rc('ytick', labelsize=SMALL_SIZE)  # fontsize of the tick labels
     plt.rc('legend', fontsize=SMALL_SIZE)  # legend fontsize
@@ -202,9 +214,12 @@ def plot_half_heatmaps_grid(hm, output, include_pcs=False, si=None, names=None):
     for i in range(len(hm)):
         plot_s = plot_heatmap_grid(hm[i],axs,cbar_ax, output, row=int(np.floor((i+1)/4)), col=(i+1)%4, vmax=hm_max,map=cmap)
     #    plot_g = plot_heatmap_grid(hm_g[i],axs,cbar_ax_rate, "Generation Rate", row=int(np.floor((i+1)/4))+2, col=(i+1)%4,vmax=rate_max,map='plasma')
-    plt.subplots_adjust(left=0.05, bottom=0.12, right=0.9, top=0.96, wspace=0.29, hspace=0.44)
+    plt.subplots_adjust(left=0.05, bottom=0.14, right=0.9, top=0.96, wspace=0.29, hspace=0.44)
 
     if include_pcs:
+        plt.rc('xtick', labelsize=14)  # fontsize of the tick labels
+        plt.rc('font', size=24)  # controls default text sizes
+
         edited_names = []
         for name in names:
             name = str.capitalize(name)

@@ -73,7 +73,7 @@ of your design, along with helpful information in troubleshooting possible fabri
 import pickle
 from IPython.display import Markdown as md
 import numpy as np
-run_info = pickle.load(open( "tol.p", "rb" ))
+run_info = pickle.load(open( "tolerance_study/tol.p", "rb" ))
 
 headers, vals = make_table_rows(run_info["Fluids"])
 table = "<table style=\"width:60%;margin-left:auto;margin-right:auto;\"> \n"
@@ -160,7 +160,7 @@ Corresponding Authors: Ali Lashkaripour ([lashkari@bu.edu](lashkari@bu.edu)) & P
 
 <html>
 <div id="content">
-    <img src="all_logos.png" class="ribbon"/>
+    <img src="../all_logos.png" class="ribbon"/>
 </div>
 </html>
 
