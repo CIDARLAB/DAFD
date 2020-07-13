@@ -2,7 +2,7 @@ from bin.DAFD_Interface import DAFD_Interface
 from tolerance_study.plot_utils import *
 import os
 import pickle
-
+#TODO: Include package handling in correct files
 
 class TolHelper:
     """This class contains the main functions needed for the tolerance study."""
@@ -79,8 +79,6 @@ class TolHelper:
                      }
         pickle.dump(to_report, open("tolerance_study/tol.p", "wb"))
         os.system('cmd /k "pweave -f md2html tolerance_study/Tolerance_Report.pmd"')
-
-
 
     def sobol_analysis(self, calc_second_order=True):
         si_size, si_gen = self.principal_feature_analysis(calc_second_order=calc_second_order)

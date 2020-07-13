@@ -1,6 +1,4 @@
-% DAFD Design Report
-% Please cite (doi number)
-% June 4th, 2020
+# DAFD Design Report
 
 ```python echo=False
 #This is a script to put all default html templates (such as tables) and functions
