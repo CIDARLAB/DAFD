@@ -3,19 +3,19 @@ Created on Fri Nov 23 19:05:38 2018
 
 @author: noushinm
 """
-from keras import metrics
-from keras.layers import Dense, Activation
-from keras.models import Sequential
+from tensorflow.keras import metrics
+from tensorflow.keras.layers import Dense, Activation
+from tensorflow.keras.models import Sequential
 import matplotlib.pyplot as plt
 import numpy as np
 # Reading an excel file using Python
 from sklearn import model_selection
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
-from keras.callbacks import EarlyStopping
-from keras.models import model_from_json
-from keras.utils import plot_model
-#from keras.utils.vis_utils import plot_model
+from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.models import model_from_json
+from tensorflow.keras.utils import plot_model
+#from tensorflow.keras.utils.vis_utils import plot_model
 import sys
 from sklearn.neural_network import MLPRegressor
 import numpy as np
@@ -26,26 +26,26 @@ import sklearn
 
 # root mean squared error (rmse) for regression
 def rmse(y_true, y_pred):
-	from keras import backend
+	from tensorflow.keras import backend
 	return backend.sqrt(backend.mean(backend.square(y_pred - y_true), axis=-1))
 
 
 # mean squared error (mse) for regression
 def mse(y_true, y_pred):
-	from keras import backend
+	from tensorflow.keras import backend
 	return backend.mean(backend.square(y_pred - y_true), axis=-1)
 
 
 # coefficient of determination (R^2) for regression
 def r_square(y_true, y_pred):
-	from keras import backend as K
+	from tensorflow.keras import backend as K
 	SS_res =  K.sum(K.square(y_true - y_pred))
 	SS_tot = K.sum(K.square(y_true - K.mean(y_true)))
 	return (1 - SS_res/(SS_tot + K.epsilon()))
 
 
 def r_square_loss(y_true, y_pred):
-	from keras import backend as K
+	from tensorflow.keras import backend as K
 	SS_res =  K.sum(K.square(y_true - y_pred))
 	SS_tot = K.sum(K.square(y_true - K.mean(y_true)))
 	return 1 - ( 1 - SS_res/(SS_tot + K.epsilon()))
