@@ -49,13 +49,6 @@ class TolHelper:
         self.file_base = base
         if self.flow_heatmap_size is None or self.flow_heatmap_gen is None:
             self.run_all()
-        # f1 = plot_sobol_results(self.si_size, self.si_gen, self.feature_names)
-        # plt.savefig(base + "_principal_features.png")
-        #
-        # f2 = plot_heatmaps(self.feature_heatmap_size, self.feature_heatmap_gen)
-        # plt.savefig(base + "_feature_heatmaps.png")
-
-
         f2 = plot_half_heatmaps_grid(self.feature_heatmap_size, "Droplet Size", include_pcs=True, si=self.si_size,
                                      names=self.feature_names)
         plt.savefig("tolerance_study/" + base + "_SizeGRID.png")
@@ -65,7 +58,6 @@ class TolHelper:
 
         f1 = plot_flow_heatmaps(self.flow_heatmap_size, self.flow_heatmap_gen, self.features_denormalized)
         plt.savefig("tolerance_study/" + base + "_flow_heatmaps.png")
-
         return f1, f2, f3
 
     def generate_report(self):

@@ -3,25 +3,13 @@ Created on Fri Nov 23 19:05:38 2018
 
 @author: noushinm
 """
-from tensorflow.keras import metrics
-from tensorflow.keras.layers import Dense, Activation
+from tensorflow.keras.layers import Dense
 from tensorflow.keras.models import Sequential
-import matplotlib.pyplot as plt
-import numpy as np
-# Reading an excel file using Python
-from sklearn import model_selection
-import pandas as pd
-from sklearn.preprocessing import StandardScaler
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.models import model_from_json
-from tensorflow.keras.utils import plot_model
-#from tensorflow.keras.utils.vis_utils import plot_model
-import sys
-from sklearn.neural_network import MLPRegressor
 import numpy as np
 import os
-from helper_scripts.ModelHelper import ModelHelper
-import sklearn
+
 
 
 # root mean squared error (rmse) for regression
