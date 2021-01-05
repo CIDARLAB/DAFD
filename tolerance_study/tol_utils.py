@@ -9,6 +9,7 @@ import itertools
 def make_grid_range(vals, size):
     return np.linspace(vals.min(), vals.max(), size)
 
+
 def make_sample_grid(base_features, perturbations):
     base_copy = base_features.copy()
     pert_vals = list(perturbations.values())

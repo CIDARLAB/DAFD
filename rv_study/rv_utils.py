@@ -13,7 +13,7 @@ def make_sweep_range(input_range, sweep_size):
     return np.linspace(np.min(input_range), np.max(input_range), sweep_size)
 
 
-# Method used for robustness score
+# Method used for versatility score
 def sweep_results(chip_design, ca_range=[.05, .25], q_range=[2, 22], sweep_size=25):
 
     grid_dict = {

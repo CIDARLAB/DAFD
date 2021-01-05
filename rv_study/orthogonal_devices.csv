@@ -1,4 +1,4 @@
-Chip #,orifice_size,aspect_ratio,expansion_ration,normalized_water_inlet,normalized_oil_inlet,normalized_orifice_length
+Chip #,orifice_size,aspect_ratio,expansion_ratio,normalized_water_inlet,normalized_oil_inlet,normalized_orifice_length
 1,75,1,2,2,2,1
 2,75,1.5,3,2.5,2.5,1.5
 3,75,2,4,3,3,2
