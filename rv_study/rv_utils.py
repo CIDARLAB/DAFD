@@ -14,7 +14,7 @@ def make_sweep_range(input_range, sweep_size):
 
 
 # Method used for versatility score
-def sweep_results(chip_design, ca_range=[.05, .25], q_range=[2, 22], sweep_size=25):
+def sweep_results(chip_design, ca_range=[.05, .25], q_range=[2, 22], sweep_size=25, jet_drop=False):
 
     grid_dict = {
         "flow_rate_ratio": make_sweep_range(q_range, sweep_size),
@@ -22,11 +22,33 @@ def sweep_results(chip_design, ca_range=[.05, .25], q_range=[2, 22], sweep_size=
     }
     pts, grid = make_sample_grid(chip_design, grid_dict)
     grid_measure = [di.runForward(pt) for pt in grid]
+    if jet_drop:
+        drop_counter = 0
+        for i, point in enumerate(grid_measure):
+            if point["regime"] == 2:
+                del grid_measure[i]
+                drop_counter += 1
+        print("Dropped %d points" % drop_counter)
     sizes = [out["droplet_size"] for out in grid_measure]
     rates = [out["generation_rate"] for out in grid_measure]
     return sizes, rates
 
 
+def in_hull(p, hull):
+    """
+    Test if points in `p` are in `hull`
+    Taken from Stack Overflow
+
+    `p` should be a `NxK` coordinates of `N` points in `K` dimensions
+    `hull` is either a scipy.spatial.Delaunay object or the `MxK` array of the
+    coordinates of `M` points in `K`dimensions for which Delaunay triangulation
+    will be computed
+    """
+    from scipy.spatial import Delaunay
+    if not isinstance(hull,Delaunay):
+        hull = Delaunay(hull)
+
+    return hull.find_simplex(p)>=0
 
 def robust_score(features, sweep_size=25, tol=10):
     score_dict = {}
