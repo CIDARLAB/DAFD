@@ -12,6 +12,17 @@ di = DAFD_Interface()
 def make_sweep_range(input_range, sweep_size):
     return np.linspace(np.min(input_range), np.max(input_range), sweep_size)
 
+"""
+Method used for sweeping the entire design space and (then) running DAFD on it.
+This is going to be nested, in the way that we
+    (1) Make a library of different device chips (this setup 
+"""
+def generate_design_space_grid(min_all, max_all, sweep_size=25):
+    grid_dict = {}
+    for key in min_all.keys():
+        grid_dict[key] = make_sweep_range([min_all[key], max_all[key]], sweep_size)
+    pts, grid = make_sample_grid({}, grid_dict)
+    return grid
 
 # Method used for versatility score
 def sweep_results(chip_design, ca_range=[.05, .25], q_range=[2, 22], sweep_size=25, jet_drop=False):
@@ -22,13 +33,41 @@ def sweep_results(chip_design, ca_range=[.05, .25], q_range=[2, 22], sweep_size=
     }
     pts, grid = make_sample_grid(chip_design, grid_dict)
     grid_measure = [di.runForward(pt) for pt in grid]
+    to_return = grid_measure.copy()
+    track_r1 = []
+    track_ir1 = []
+    track_ir2 = []
+    track_r2 = []
     if jet_drop:
         drop_counter = 0
         for i, point in enumerate(grid_measure):
             if point["regime"] == 2:
-                del grid_measure[i]
                 drop_counter += 1
+                track_ir2.append(i)
+                track_r2.append(grid[i]["capillary_number"])
+            else:
+                track_ir1.append(i)
+                track_r1.append(grid[i]["capillary_number"])
+        import operator
+        print("REGIME 1")
+        index, value = max(enumerate(track_r1), key=operator.itemgetter(1))
+        print(value)
+        print(grid[track_ir1[index]])
+        if len(track_r2) > 0:
+            index, value = min(enumerate(track_r2), key=operator.itemgetter(1))
+            print("REGIME 2")
+            print(value)
+            print(grid[track_ir2[index]])
+            print(min(track_r2))
         print("Dropped %d points" % drop_counter)
+        print("\n")
+    test_points = [pt for i, pt in enumerate(grid) if i not in track_ir2]
+    print("TESTING")
+    for pt in test_points:
+        test_res = di.runForward(pt)
+        if test_res["regime"] == 2:
+            print("FAILED!!")
+    grid_measure = [pt for i, pt in enumerate(grid_measure) if i not in track_ir2]
     sizes = [out["droplet_size"] for out in grid_measure]
     rates = [out["generation_rate"] for out in grid_measure]
     return sizes, rates
