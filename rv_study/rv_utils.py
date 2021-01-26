@@ -6,6 +6,7 @@ import numpy as np
 import os
 from bin.DAFD_Interface import DAFD_Interface
 from tolerance_study.TolHelper import TolHelper
+import pandas as pd
 from tolerance_study.tol_utils import make_sample_grid
 di = DAFD_Interface()
 
@@ -39,7 +40,10 @@ def sweep_results(chip_design, ca_range=[.05, .25], q_range=[2, 22], sweep_size=
         grid_measure = drop_jetting_points(grid_measure, grid)
     sizes = [out["droplet_size"] for out in grid_measure]
     rates = [out["generation_rate"] for out in grid_measure]
-    return sizes, rates
+    out = pd.DataFrame(grid)
+    out["size"] = sizes
+    out["rate"] = rates
+    return sizes, rates, out
 
 
 def drop_jetting_points(grid_measure, grid):

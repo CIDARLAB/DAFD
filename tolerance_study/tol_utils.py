@@ -10,10 +10,13 @@ def make_grid_range(vals, size):
     return np.linspace(vals.min(), vals.max(), size)
 
 
-def make_sample_grid(base_features, perturbations):
+def make_sample_grid(base_features, perturbations, entire_chip=False):
     base_copy = base_features.copy()
     pert_vals = list(perturbations.values())
-    options = itertools.product(pert_vals[0], pert_vals[1])
+    if entire_chip:
+        options = itertools.product(pert_vals[0], pert_vals[1], pert_vals[2], pert_vals[3], pert_vals[4], pert_vals[5])
+    else:
+        options = itertools.product(pert_vals[0], pert_vals[1])
     pts = []
     grid = []
     for option in options:
