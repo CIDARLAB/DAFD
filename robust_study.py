@@ -45,4 +45,4 @@ for i, device in enumerate(devices):
 results["score"] = device_scores
 results["size_scores"] = device_size_scores
 results["rate_scores"] = device_rate_scores
-results.to_csv("20210217_robust_study.csv")
+results.to_csv("20210218_robust_study_flow.csv")

@@ -164,15 +164,28 @@ def calculate_robust_score(features, sweep_size=5, tol=10):
     scores = []
     size_score = []
     rate_score = []
-    features_to_change = features.copy()
-    del features_to_change["flow_rate_ratio"]
-    del features_to_change["capillary_number"]
-    for feature in features_to_change.keys():
+    features_denormed = denormalize_features(features)
+    copy_denormed = features_denormed.copy()
+
+    # del copy_denormed["oil_flow"]
+    # del copy_denormed["water_flow"]
+
+    del copy_denormed["orifice_size"]
+    del copy_denormed["depth"]
+    del copy_denormed["outlet_width"]
+    del copy_denormed["orifice_length"]
+    del copy_denormed["oil_inlet"]
+    del copy_denormed["water_inlet"]
+
+    for feature in copy_denormed.keys():
         # Make grid_dict with tol of 10% in  a SINGLE dimension
-        sweep_range = make_sweep_range([features[feature]*(1-tol/100), features[feature]*(1+tol/100)], sweep_size)
+        sweep_range = make_sweep_range([features_denormed[feature]*(1-tol/100), features_denormed[feature]*(1+tol/100)], sweep_size)
         grid = []
         for i in range(len(sweep_range)):
-            grid.append(update_constant_flows(features, {feature: sweep_range[i]}))
+            copy = features_denormed.copy()
+            copy.update({feature: sweep_range[i]})
+            grid.append(renormalize_features(copy))
+        #     grid.append(update_constant_flows(features, {feature: sweep_range[i]}))
         grid_measure = [di.runForward(pt) for pt in grid]
         sizes = [out["droplet_size"] for out in grid_measure]
         size_range = (np.max(sizes) - np.min(sizes))/initial_outputs["droplet_size"]
