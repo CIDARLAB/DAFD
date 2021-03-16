@@ -159,23 +159,13 @@ def renormalize_features(features):
     return ret_dict
 
 
-def calculate_robust_score(features, sweep_size=5, tol=10):
+def calculate_robust_score(features, sweep_size=3, tol=10, max_score=10):
     initial_outputs = di.runForward(features)
     scores = []
     size_score = []
     rate_score = []
     features_denormed = denormalize_features(features)
     copy_denormed = features_denormed.copy()
-
-    # del copy_denormed["oil_flow"]
-    # del copy_denormed["water_flow"]
-
-    del copy_denormed["orifice_size"]
-    del copy_denormed["depth"]
-    del copy_denormed["outlet_width"]
-    del copy_denormed["orifice_length"]
-    del copy_denormed["oil_inlet"]
-    del copy_denormed["water_inlet"]
 
     for feature in copy_denormed.keys():
         # Make grid_dict with tol of 10% in  a SINGLE dimension
@@ -185,18 +175,23 @@ def calculate_robust_score(features, sweep_size=5, tol=10):
             copy = features_denormed.copy()
             copy.update({feature: sweep_range[i]})
             grid.append(renormalize_features(copy))
-        #     grid.append(update_constant_flows(features, {feature: sweep_range[i]}))
         grid_measure = [di.runForward(pt) for pt in grid]
         sizes = [out["droplet_size"] for out in grid_measure]
         size_range = (np.max(sizes) - np.min(sizes))/initial_outputs["droplet_size"]
 
         rates = [out["generation_rate"] for out in grid_measure]
         rate_range = (np.max(rates) - np.min(rates)) / initial_outputs["generation_rate"]
-        sz_score = np.log10(1/size_range)
-        r_score = np.log10(1/rate_range)
+        if size_range == 0:
+            sz_score = max_score
+        else:
+            sz_score = np.log10(1/size_range)
+        if rate_range == 0:
+            r_score = max_score
+        else:
+            r_score = np.log10(1/rate_range)
         size_score.append(sz_score)
         rate_score.append(r_score)
-        scores.append(np.mean([sz_score, r_score])) # TODO: update this with a beter score (doesn't bias one or the other)
+        scores.append(np.mean([sz_score, r_score]))
 
     return np.mean(scores), np.mean(size_score), np.mean(rate_score)
 
