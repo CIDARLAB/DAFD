@@ -1,23 +1,20 @@
 """
-Created David McIntyre, 12/15/20
-Create utils for robustness & versatility study
+Created David McIntyre
+Utils for robustness & versatility study
 """
 import numpy as np
-import os
 from DAFD.bin.DAFD_Interface import DAFD_Interface
-from DAFD.tolerance_study.TolHelper import TolHelper
 import pandas as pd
 from DAFD.tolerance_study.tol_utils import make_sample_grid
 di = DAFD_Interface()
 
+
+# Method returns linspace of specific range given number of divisions
 def make_sweep_range(input_range, sweep_size):
     return np.linspace(np.min(input_range), np.max(input_range), sweep_size)
 
-"""
-Method used for sweeping the entire design space and (then) running DAFD on it.
-This is going to be nested, in the way that we
-    (1) Make a library of different device chips (this setup 
-"""
+
+# Method used for sweeping the entire design space and (then) running DAFD on it.
 def generate_design_space_grid(min_all, max_all, increment=.5):
     grid_dict = {}
     for key in min_all.keys():
@@ -28,6 +25,7 @@ def generate_design_space_grid(min_all, max_all, increment=.5):
     pts, grid = make_sample_grid({}, grid_dict, entire_chip=True)
     return grid
 
+
 # Method used for versatility score
 def sweep_results(chip_design, ca_range=[.05, .25], q_range=[2, 22], sweep_size=25, jet_drop=False):
     grid_dict = {
@@ -36,7 +34,7 @@ def sweep_results(chip_design, ca_range=[.05, .25], q_range=[2, 22], sweep_size=
     }
     pts, grid = make_sample_grid(chip_design, grid_dict)
     grid_measure = [di.runForward(pt) for pt in grid]
-    if jet_drop:
+    if jet_drop: # Drop jetting regime points if needed
         grid, grid_measure = drop_jetting_points(grid_measure, grid)
     sizes = [out["droplet_size"] for out in grid_measure]
     rates = [out["generation_rate"] for out in grid_measure]
@@ -46,6 +44,7 @@ def sweep_results(chip_design, ca_range=[.05, .25], q_range=[2, 22], sweep_size=
     return sizes, rates, out
 
 
+# Method to remove points in jetting regime
 def drop_jetting_points(grid_measure, grid):
     track_r1 = []
     track_ir1 = []
@@ -79,18 +78,10 @@ def in_hull(p, hull):
     from scipy.spatial import Delaunay
     if not isinstance(hull,Delaunay):
         hull = Delaunay(hull)
-
     return hull.find_simplex(p)>=0
 
-def update_constant_flows(init_features, to_update):
-    init_features_denormed = denormalize_features(init_features)
-    new_features = init_features.copy()
-    new_features.update(to_update)
-    new_features_denormed = denormalize_features(new_features)
-    new_features_denormed.update({"oil_flow": init_features_denormed["oil_flow"],
-                                  "water_flow": init_features_denormed["water_flow"]})
-    return renormalize_features(new_features_denormed)
 
+# Denormalizes features into raw parameters
 def denormalize_features(features):
     Or = features["orifice_size"]
     As = features["aspect_ratio"]
@@ -126,6 +117,7 @@ def denormalize_features(features):
     return ret_dict
 
 
+# Denormalizes features into parameters compatible with DAFD forward model
 def renormalize_features(features):
     channel_height = features["depth"]
     outlet_channel_width = features["outlet_width"]
@@ -159,6 +151,7 @@ def renormalize_features(features):
     return ret_dict
 
 
+# Calculate all robust score given single parameter set (geometric and flows)
 def calculate_robust_score(features, sweep_size=3, tol=10, max_score=10):
     initial_outputs = di.runForward(features)
     scores = []
@@ -176,7 +169,6 @@ def calculate_robust_score(features, sweep_size=3, tol=10, max_score=10):
     features_denormed = denormalize_features(features)
     copy_denormed = features_denormed.copy()
     flow_features = ["water_flow", "oil_flow"]
-    fab_features = ["orifice_size","depth","outlet_width", "orifice_length", "water_inlet","oil_inlet"]
     for feature in copy_denormed.keys():
         # Make grid_dict with tol of 10% in  a SINGLE dimension
         sweep_range = make_sweep_range([features_denormed[feature]*(1-tol/100), features_denormed[feature]*(1+tol/100)], sweep_size)
@@ -212,5 +204,14 @@ def calculate_robust_score(features, sweep_size=3, tol=10, max_score=10):
         rate_score.append(r_score)
         scores.append(np.mean([sz_score, r_score]))
 
-    return np.mean(scores), np.mean(size_score), np.mean(rate_score), np.mean(scores_flow), np.mean(size_score_flow), np.mean(rate_score_flow), np.mean(scores_fab), np.mean(size_score_fab), np.mean(rate_score_fab)
+    results = {"score": np.mean(scores),
+                    "size_score":  np.mean(size_score),
+                    "rate_score": np.mean(rate_score),
+                    "score_flow": np.mean(scores_flow),
+                    "size_score_flow": np.mean(size_score_flow),
+                    "rate_score_flow":  np.mean(rate_score_flow),
+                    "score_fab": np.mean(scores_fab),
+                    "size_score_fab": np.mean(size_score_fab),
+                    "rate_score_fab": np.mean(rate_score_fab)}
+    return results
 

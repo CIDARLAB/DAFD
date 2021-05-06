@@ -1,11 +1,9 @@
 import pandas as pd
-import matplotlib.pyplot as plt
 from DAFD.rv_study.rv_utils import *
-from scipy.spatial import ConvexHull, convex_hull_plot_2d
+from scipy.spatial import ConvexHull
+from tqdm import tqdm
 
-# Generate minimum and maximum values
-# Taken from DAFD paper
-
+# Bound design space parameters (both geometric and flow)
 min_all = {
     'orifice_size': 75,
     'aspect_ratio': 1,
@@ -28,47 +26,46 @@ size_score = []
 rate_score = []
 all_points = {}
 hulls = []
-chip_grid = generate_design_space_grid(min_all, max_all, increment=.5)
-for i, chip in enumerate(chip_grid):
-    if i % 100 == 0:
-        print("Processed %d chips out of %d total"%(i, len(chip_grid)))
-        print("Took %f seconds to process 100 chips. Avg of %f times per calculation" %(el, el/(100*100)))
-    #chip = chip_grid[13999]
-    sizes, rates, full_sweep = sweep_results(chip, sweep_size=5, jet_drop=False, ca_range=[.05, 0.1])
-    full_sweep["chip_num"] = i
-    if i == 0:
-        complete_sweep = full_sweep
-    else:
-        complete_sweep = pd.concat([complete_sweep, full_sweep], sort=True)
 
+# Make grid to iterate over
+chip_grid = generate_design_space_grid(min_all, max_all, increment=.5)
+
+for i, chip in tqdm(enumerate(chip_grid)):
+    # Sweep through all flow combinations and save to master dataset
+    sizes, rates, fwd_results = sweep_results(chip, sweep_size=5, ca_range=[.05, 0.1])
+    fwd_results["chip_num"] = i
+    if i == 0:
+        complete_sweep = fwd_results
+    else:
+        complete_sweep = pd.concat([complete_sweep, fwd_results], sort=True)
+    # Combine points and calculate convex hulls and scores
     points = np.array([[sizes[i], rates[i]] for i in range(len(sizes))])
     try:
         hull = ConvexHull(points)
         hulls.append(hull)
         size_score.append(np.max(sizes) - np.min(sizes))
         rate_score.append(np.max(rates) - np.min(rates))
-        score.append(hull.volume)
+        score.append(hull.volume)  # hull.volume calculates the area of the polygon
+    # Catch errors if a convex hull cannot be calculated (i.e less than 3 points)
     except:
         hulls.append(-1)
         score.append(-1)
         size_score.append(-1)
         rate_score.append(-1)
-    if i % 500 == 0:
-        print("at chip %d" % i)
+    # Save checkpoints
     if i % 5000 == 0 and i > 1:
         print("Saving Checkpoint: at chip %d" % i)
-        results = pd.DataFrame(chip_grid[:i+1])
+        results = pd.DataFrame(chip_grid[:i + 1])
         results["score"] = score
         results["size_score"] = size_score
         results["rate_score"] = rate_score
-        # results.to_csv("DAFD/other_ignore_git/FINE_results_chkpt_%d.csv" % i)
-        # complete_sweep.to_csv("DAFD/other_ignore_git/FINE_complete_sweep_chkpt_%d.csv" % i)
+        results.to_csv("results_chkpt_%d.csv" % i)
+        complete_sweep.to_csv("complete_sweep_chkpt_%d.csv" % i)
 
-
+# At the end, save results
 results = pd.DataFrame(chip_grid)
 results["score"] = score
 results["size_score"] = size_score
 results["rate_score"] = rate_score
-# results.to_csv("20210211_designspace_fine.csv")
-# complete_sweep.to_csv("20210211_complete_fine.csv")
-
+results.to_csv("versatility_results.csv")
+complete_sweep.to_csv("versatility_sweep_results.csv")
