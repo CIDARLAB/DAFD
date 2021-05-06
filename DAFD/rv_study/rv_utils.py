@@ -164,9 +164,19 @@ def calculate_robust_score(features, sweep_size=3, tol=10, max_score=10):
     scores = []
     size_score = []
     rate_score = []
+
+    scores_flow = []
+    size_score_flow = []
+    rate_score_flow = []
+
+    scores_fab = []
+    size_score_fab = []
+    rate_score_fab = []
+
     features_denormed = denormalize_features(features)
     copy_denormed = features_denormed.copy()
-
+    flow_features = ["water_flow", "oil_flow"]
+    fab_features = ["orifice_size","depth","outlet_width", "orifice_length", "water_inlet","oil_inlet"]
     for feature in copy_denormed.keys():
         # Make grid_dict with tol of 10% in  a SINGLE dimension
         sweep_range = make_sweep_range([features_denormed[feature]*(1-tol/100), features_denormed[feature]*(1+tol/100)], sweep_size)
@@ -189,19 +199,18 @@ def calculate_robust_score(features, sweep_size=3, tol=10, max_score=10):
             r_score = max_score
         else:
             r_score = np.log10(1/rate_range)
+        if feature in flow_features:
+            size_score_flow.append(sz_score)
+            rate_score_flow.append(r_score)
+            scores_flow.append(np.mean([sz_score, r_score]))
+        else:
+            size_score_fab.append(sz_score)
+            rate_score_fab.append(r_score)
+            scores_fab.append(np.mean([sz_score, r_score]))
+
         size_score.append(sz_score)
         rate_score.append(r_score)
         scores.append(np.mean([sz_score, r_score]))
 
-    return np.mean(scores), np.mean(size_score), np.mean(rate_score)
-
-
-def calculate_versatility_score(sizes, rates):
-    # Find max and min values
-    # Normalize by maximum values of entire dataset (so like model helper)
-    # Just calculate root sum of each
-    range_size = np.max(sizes) - np.min(sizes)
-    range_rate = np.max(rates) - np.min(rates)
-    score = np.sqrt(range_rate**2 + range_size**2)/2
-    return score
+    return np.mean(scores), np.mean(size_score), np.mean(rate_score), np.mean(scores_flow), np.mean(size_score_flow), np.mean(rate_score_flow), np.mean(scores_fab), np.mean(size_score_fab), np.mean(rate_score_fab)
 
