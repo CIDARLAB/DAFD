@@ -5,6 +5,8 @@ DAFD builds a generative model using experimental data of microfludic droplet ge
 
 You can find out more on our [main website](http://dafdcad.org/neural-net/index.html). If you simply want to use our software, you should use the software on the site. This GitHub page is set up for users who wish to view and edit our source code or who want to set up a local server. 
 
+Data used for the Robustness & Versatility study (Lashkaripour, McInytre, & Densmore, 2021) can be accessed [here](https://drive.google.com/drive/folders/1aC7yJzTMcizzrZl9xUnpEvvAaJoq4K4S?usp=sharing). Please contact David McIntyre (dpmc@bu.edu) for any access issues.
+
 ## Installation
 Download the repository from GitHub, create a venv environment, and install the necessary packages. 
 
