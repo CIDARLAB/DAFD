@@ -170,8 +170,16 @@ def calculate_robust_score(features, sweep_size=3, tol=10, max_score=10):
     copy_denormed = features_denormed.copy()
     flow_features = ["water_flow", "oil_flow"]
     for feature in copy_denormed.keys():
+        if feature in flow_features:
+            continue
         # Make grid_dict with tol of 10% in  a SINGLE dimension
+        #TODO: CHANGE FROM 20220325: +/- 12.5um in a SINGLE DIMENSION
+        #TODO: UPDATING on 20220406: Now testing +/- 25um in a SINGLE DIMENSION
+        #TODO: RUNNING AGAIN AT 10% to get the raw data
+        err = 12.5
         sweep_range = make_sweep_range([features_denormed[feature]*(1-tol/100), features_denormed[feature]*(1+tol/100)], sweep_size)
+        #sweep_range = make_sweep_range([features_denormed[feature]+25, features_denormed[feature] - 25], sweep_size)
+
         grid = []
         for i in range(len(sweep_range)):
             copy = features_denormed.copy()
@@ -185,33 +193,40 @@ def calculate_robust_score(features, sweep_size=3, tol=10, max_score=10):
         rate_range = (np.max(rates) - np.min(rates)) / initial_outputs["generation_rate"]
         if size_range == 0:
             sz_score = max_score
+        #TODO: took out log10
         else:
-            sz_score = np.log10(1/size_range)
+            #sz_score = np.log10(1/size_range)
+            sz_score = size_range
         if rate_range == 0:
             r_score = max_score
         else:
-            r_score = np.log10(1/rate_range)
-        if feature in flow_features:
-            size_score_flow.append(sz_score)
-            rate_score_flow.append(r_score)
-            scores_flow.append(np.mean([sz_score, r_score]))
-        else:
-            size_score_fab.append(sz_score)
-            rate_score_fab.append(r_score)
-            scores_fab.append(np.mean([sz_score, r_score]))
+            r_score = rate_range
+#            r_score = np.log10(1/rate_range)
+        # if feature in flow_features:
+        #     size_score_flow.append(sz_score)
+        #     rate_score_flow.append(r_score)
+        #     scores_flow.append(np.mean([sz_score, r_score]))
+        # else:
+        #     size_score_fab.append(sz_score)
+        #     rate_score_fab.append(r_score)
+        #     scores_fab.append(np.mean([sz_score, r_score]))
 
         size_score.append(sz_score)
         rate_score.append(r_score)
         scores.append(np.mean([sz_score, r_score]))
 
-    results = {"score": np.mean(scores),
-                    "size_score":  np.mean(size_score),
-                    "rate_score": np.mean(rate_score),
-                    "score_flow": np.mean(scores_flow),
-                    "size_score_flow": np.mean(size_score_flow),
-                    "rate_score_flow":  np.mean(rate_score_flow),
-                    "score_fab": np.mean(scores_fab),
-                    "size_score_fab": np.mean(size_score_fab),
-                    "rate_score_fab": np.mean(rate_score_fab)}
+    #TODO: SAVING RIGHT NOW JUST AS LISTS, NOT COMPRESSING
+    results = {"score": scores,
+               "size_score": size_score,
+               "rate_score": rate_score}
+    # results = {"score": np.mean(scores),
+    #                 "size_score":  np.mean(size_score),
+    #                 "rate_score": np.mean(rate_score)}
+                    # "score_flow": np.mean(scores_flow),
+                    # "size_score_flow": np.mean(size_score_flow),
+                    # "rate_score_flow":  np.mean(rate_score_flow),
+                    # "score_fab": np.mean(scores_fab),
+                    # "size_score_fab": np.mean(size_score_fab),
+                    # "rate_score_fab": np.mean(rate_score_fab)}
     return results
 
