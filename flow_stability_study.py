@@ -22,8 +22,8 @@ for chip in tqdm(chips):
         ## for points on boundary, set to 0
         data.loc[boundary_points.index, "flow_stability"] = 0
         non_boundary_points = points.loc[points.boundary == 0,:]
-        boundary_flows = list(zip(boundary_points.normed_water, boundary_points.normed_oil))
-        non_boundary_flows = list(zip(non_boundary_points.normed_water, non_boundary_points.normed_oil))
+        boundary_flows = list(zip(boundary_points.water_flow, boundary_points.oil_flow))
+        non_boundary_flows = list(zip(non_boundary_points.water_flow, non_boundary_points.oil_flow))
         ## for each point, calculate distance of non-boundaries to boundaries
         boundary_distances = cdist(non_boundary_flows, boundary_flows)
         ## Set minimum distance as "robustness" for now

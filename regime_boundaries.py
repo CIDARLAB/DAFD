@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
-from DAFD.metrics_study.rv_utils import denormalize_features
+from DAFD.metrics_study.metric_utils import denormalize_features
 
 def get_adjacent_points(params, base_idxs, flow=True):
     adjacent_pts = []

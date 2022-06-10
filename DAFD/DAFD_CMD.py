@@ -2,6 +2,7 @@
 import os
 from DAFD.bin.DAFD_Interface import DAFD_Interface
 from DAFD.tolerance_study.TolHelper import TolHelper
+from DAFD.metrics_study.MetricHelper import MetricHelper
 
 di = DAFD_Interface()
 
@@ -99,3 +100,13 @@ if tolerance_test:
 	TH.run_all()
 	TH.plot_all()
 	TH.generate_report()
+
+flow_stability_test = True
+if flow_stability_test:
+	from DAFD.metrics_study import metric_utils
+	if stage == 2: # Performance prediction first
+		# Get the base device design features
+		MetricH = MetricHelper(features)
+		MetricH.run_all_flow_stability() # run flow stability study on the chip
+		MetricH.plot_all() #TODO: MAKE ALL PLOTS NEEDED FOR THE REPORT
+		MetricH.generate_report(filepath="PLACEHOLDER_FSstudy.csv") #TODO: FIGURE OUT WHAT AN OUTPUT REPORT WOULD LOOK LIKE

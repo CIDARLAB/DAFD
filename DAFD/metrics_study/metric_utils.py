@@ -8,7 +8,6 @@ import pandas as pd
 from DAFD.tolerance_study.tol_utils import make_sample_grid
 di = DAFD_Interface()
 
-
 # Method returns linspace of specific range given number of divisions
 def make_sweep_range(input_range, sweep_size):
     return np.linspace(np.min(input_range), np.max(input_range), sweep_size)
@@ -27,10 +26,18 @@ def generate_design_space_grid(min_all, max_all, increment=.5):
 
 
 # Method used for versatility score
-def sweep_results(chip_design, ca_range=[.05, .25], q_range=[2, 22], sweep_size=25, jet_drop=False):
+def sweep_results(chip_design, ca_range=[], q_range=[], sweep_size=25, jet_drop=False):
+    if bool(ca_range):
+        ca_range = make_sweep_range(ca_range,sweep_size)
+    else:
+        ca_range = np.concatenate([np.arange(.05,.11,step=.01), np.linspace(.161111,1.05,9)])
+    if bool(q_range):
+        q_range = make_sweep_range(q_range, sweep_size)
+    else:
+        q_range = np.linspace(2,22,10)
     grid_dict = {
-        "flow_rate_ratio": make_sweep_range(q_range,sweep_size),
-        "capillary_number": make_sweep_range(ca_range, sweep_size)
+        "flow_rate_ratio": q_range,
+        "capillary_number": ca_range
     }
     pts, grid = make_sample_grid(chip_design, grid_dict)
     grid_measure = [di.runForward(pt) for pt in grid]
