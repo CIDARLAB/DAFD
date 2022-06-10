@@ -8,6 +8,7 @@ from scipy.spatial.distance import cdist
 class MetricHelper:
     """This class contains the main functions needed for the metrics study."""
     di = None
+    point_flow_stability = None
     features_normalized = {}
     features_denormalized = {}
     chip_results = None
@@ -37,6 +38,7 @@ class MetricHelper:
             "capillary_number": self.ca_range
         }
         pts, grid = metric_utils.make_sample_grid(chip_design, grid_dict)
+
         grid_measure = [self.di.runForward(pt) for pt in grid]
         if jet_drop:  # Drop jetting regime points if needed
             grid, grid_measure = metric_utils.drop_jetting_points(grid_measure, grid)
@@ -90,6 +92,13 @@ class MetricHelper:
         ## Set minimum distance as "robustness" for now
         min_distances = np.min(boundary_distances, axis=1)
         self.chip_results.loc[non_boundary_points.index, "flow_stability"] = min_distances
+        base_flow_stability = self._find_flow_in_df(self.features_normalized)
+        if base_flow_stability.empty:
+            base_flows = (self.features_denormalized["water_flow"]*.06, self.features_denormalized["oil_flow"])
+            base_distance = cdist([base_flows], boundary_flows)
+            self.point_flow_stability = np.min(base_distance)
+        else:
+            self.point_flow_stability = float(base_flow_stability.float_stablity)
 
 
     def _get_adjacent_points(self, params, base_idxs, flow=True):
@@ -108,11 +117,14 @@ class MetricHelper:
                 adjacent_pts.append(new_vals)
         return adjacent_pts
 
+    def _find_flow_in_df(self, pt):
+        return self.chip_results.loc[self.chip_results.capillary_number == pt["capillary_number"]] \
+            .loc[self.chip_results.flow_rate_ratio == pt["flow_rate_ratio"], :]
+
     def _compare_regimes(self, base_regime, adj_pts):
         boundary = 0
         for pt in adj_pts:
-            adj_regime = int(self.chip_results.loc[self.chip_results.capillary_number==pt["capillary_number"]] \
-                                          .loc[self.chip_results.flow_rate_ratio==pt["flow_rate_ratio"],"regime"])
+            adj_regime = int(self._find_flow_in_df(pt).regime)
             if adj_regime != base_regime:
                 boundary = 1
                 return boundary

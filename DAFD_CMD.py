@@ -3,6 +3,7 @@ import os
 from DAFD.bin.DAFD_Interface import DAFD_Interface
 from DAFD.tolerance_study.TolHelper import TolHelper
 from DAFD.metrics_study.MetricHelper import MetricHelper
+import pandas as pd
 
 di = DAFD_Interface()
 
@@ -12,7 +13,7 @@ features = {}
 
 stage = 0
 tolerance_test = False
-with open(os.path.dirname(os.path.abspath(__file__)) + "/" + "cmd_inputs.txt","r") as f:
+with open(os.path.dirname(os.path.abspath(__file__)) + "/" + "DAFD/cmd_inputs.txt","r") as f:
 	for line in f:
 		line = line.strip()
 		if line == "CONSTRAINTS":
@@ -68,8 +69,22 @@ if stage == 2:
 	print(result_str)
 
 else:
-	rev_results = di.runInterp(desired_vals, constraints)
-	fwd_results = di.runForward(rev_results)
+	FLOWSTAB = True
+	if FLOWSTAB:
+		results = di.runInterp2(desired_vals, constraints)
+		for i, result in enumerate(results):
+			MetHelper = MetricHelper(result)
+			MetHelper.run_all_flow_stability()
+			MetHelper.generate_report("fs_test_result%d.csv")
+			results[i]["flow_stability"] = MetHelper.point_flow_stability
+			results.update(di.runForward(result))
+		results_df = pd.DataFrame(results)
+		results_df.to_csv("20220610_CMDResults")
+		#rev_results = results_df.sort
+		# TODO: PICK THE HIGHEST FLOW STABILITY AND INTEGRATE IT IN WITH THE REST OF THE TIMELINE
+	else:
+		rev_results = di.runInterp(desired_vals, constraints)
+		fwd_results = di.runForward(rev_results)
 
 	print(rev_results)
 	print(fwd_results)
@@ -104,9 +119,10 @@ if tolerance_test:
 flow_stability_test = True
 if flow_stability_test:
 	from DAFD.metrics_study import metric_utils
-	if stage == 2: # Performance prediction first
+	if stage == 1: # Performance prediction first
 		# Get the base device design features
-		MetricH = MetricHelper(features)
+		MetricH = MetricHelper(rev_results)
 		MetricH.run_all_flow_stability() # run flow stability study on the chip
 		MetricH.plot_all() #TODO: MAKE ALL PLOTS NEEDED FOR THE REPORT
+		print("DONE")
 		MetricH.generate_report(filepath="PLACEHOLDER_FSstudy.csv") #TODO: FIGURE OUT WHAT AN OUTPUT REPORT WOULD LOOK LIKE
