@@ -1,5 +1,5 @@
 import pandas as pd
-from DAFD.rv_study.rv_utils import *
+from DAFD.metrics_study.rv_utils import *
 from scipy.spatial import ConvexHull
 from tqdm import tqdm
 
