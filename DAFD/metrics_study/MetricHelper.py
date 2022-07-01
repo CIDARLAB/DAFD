@@ -3,6 +3,7 @@ from DAFD.metrics_study import metric_utils
 import numpy as np
 import pandas as pd
 from scipy.spatial.distance import cdist
+from scipy.spatial import ConvexHull
 
 
 class MetricHelper:
@@ -14,6 +15,7 @@ class MetricHelper:
     chip_results = None
     ca_range = None
     q_range = None
+    versatility_results = {}
 
     def __init__(self, feature_inputs, di=None):
         self.features_normalized = feature_inputs
@@ -22,6 +24,18 @@ class MetricHelper:
             self.di = DAFD_Interface()
         else:
             self.di = di
+    def run_all_versatility(self):
+        # make sweep
+        if self.chip_results is None:
+            self.chip_results = self.sweep_results(self.features_normalized)
+        self.versatility_results = self.calc_versatility_score()
+
+    def run_all_flow_stability(self):
+        # make sweep
+        if self.chip_results is None:
+            self.chip_results = self.sweep_results(self.features_normalized)
+        self.find_boundary_points()
+        self.point_flow_stability = self.calc_flow_stability_score()
 
     # Method used for versatility score
     def sweep_results(self, chip_design, ca_range=[], q_range=[], sweep_size=25, jet_drop=False):
@@ -50,15 +64,7 @@ class MetricHelper:
         out["droplet_size"] = sizes
         out["generation_rate"] = rates
         out["regime"] = regime
-
         return out
-
-
-    def run_all_flow_stability(self):
-        # make sweep
-        self.chip_results = self.sweep_results(self.features_normalized)
-        self.find_boundary_points()
-        self.calc_flow_stability_score()
 
     def find_boundary_points(self):
         # THis is not the best way to do this with a single chip. Seems like a lot of unnecessary work
@@ -79,6 +85,34 @@ class MetricHelper:
             self.chip_results.loc[i, "water_flow"] = denormed["water_flow"]
             self.chip_results.loc[i, "oil_flow"] = denormed["oil_flow"]
 
+    def calc_versatility_score(self):
+        results = {}
+        for i in range(3):
+            if i == 0:
+                type = "all"
+                data = self.chip_results
+            elif i == 1:
+                type = "dripping"
+                data = self.chip_results.loc[self.chip_results.regime==1,:]
+            else:
+                type = "jetting"
+                data = self.chip_results.loc[self.chip_results.regime==2,:]
+
+            sizes = list(data.droplet_size)
+            rates = list(data.generation_rate)
+            points = np.array([[sizes[i], rates[i]] for i in range(len(sizes))])
+            try:
+                hull = ConvexHull(points)
+                # hulls.append(hull)
+                results[f"{type}_size_score"] = np.max(sizes) - np.min(sizes)
+                results[f"{type}_rate_score"] = np.max(rates) - np.min(rates)
+                results[f"{type}_overall_score"] = hull.volume  # hull.volume calculates the area of the polygon
+            # Catch errors if a convex hull cannot be calculated (i.e less than 3 points)
+            except:
+                results[f"{type}_size_score"] = -1
+                results[f"{type}_rate_score"] = -1
+                results[f"{type}_overall_score"] = -1
+        return results
 
     def calc_flow_stability_score(self):
         boundary_points = self.chip_results.loc[self.chip_results.boundary == 1, :]
@@ -96,9 +130,9 @@ class MetricHelper:
         if base_flow_stability.empty:
             base_flows = (self.features_denormalized["water_flow"]*.06, self.features_denormalized["oil_flow"])
             base_distance = cdist([base_flows], boundary_flows)
-            self.point_flow_stability = np.min(base_distance)
+            return np.min(base_distance)
         else:
-            self.point_flow_stability = float(base_flow_stability.float_stablity)
+            return float(base_flow_stability.float_stablity)
 
 
     def _get_adjacent_points(self, params, base_idxs, flow=True):
@@ -129,14 +163,6 @@ class MetricHelper:
                 boundary = 1
                 return boundary
         return boundary
-
-
-    def run_all_versatility(self):
-        # make sweep
-        # find hull
-        # find score
-        return None
-
 
     def plot_all(self):
         return None

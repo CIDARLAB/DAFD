@@ -27,7 +27,7 @@ def resource_path(relative_path):
 
 	return os.path.join(base_path, relative_path)
 
-class InterModel2:
+class InterModelQM:
 	"""
 	This class handles interpolation over our forward models to make the reverse predictions. Included in this is a joint
 	analysis of multiple options and their possible flow stability results.

@@ -70,15 +70,20 @@ if stage == 2:
 
 else:
 	FLOWSTAB = True
-	if FLOWSTAB:
-		results = di.runInterp2(desired_vals, constraints)
+	VERSATILITY = True
+	if FLOWSTAB or VERSATILITY:
+		results = di.runInterpQM(desired_vals, constraints)
 		for i, result in enumerate(results):
 			MetHelper = MetricHelper(result)
-			MetHelper.run_all_flow_stability()
-			MetHelper.generate_report("fs_test_result%d.csv")
-			results[i]["flow_stability"] = MetHelper.point_flow_stability
+			if FLOWSTAB:
+				MetHelper.run_all_flow_stability()
+				results[i]["flow_stability"] = MetHelper.point_flow_stability
+			if VERSATILITY:
+				MetHelper.run_all_versatility()
+				results[i].update(MetHelper.versatility_results)
 			results.update(di.runForward(result))
 		results_df = pd.DataFrame(results)
+		MetHelper.generate_report(flow_stability=FLOWSTAB, versatility=VERSATILITY)
 		results_df.to_csv("20220610_CMDResults")
 		#rev_results = results_df.sort
 		# TODO: PICK THE HIGHEST FLOW STABILITY AND INTEGRATE IT IN WITH THE REST OF THE TIMELINE

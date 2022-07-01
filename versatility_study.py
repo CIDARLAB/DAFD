@@ -31,7 +31,7 @@ chip_cols = ['aspect_ratio','chip_number', 'expansion_ratio', 'flow_rate_ratio',
 # # Make grid to iterate over
 # chip_grid = generate_design_space_grid(min_all, max_all, increment=.5)
 
-data = pd.read_csv("20220520_allData.csv")
+data = pd.read_csv("data/20220520_allData.csv")
 chips = data.groupby("chip_number")
 
 for i in tqdm(range(len(chips))):

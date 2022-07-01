@@ -1,7 +1,7 @@
 """ Interface class for DAFD"""
 from DAFD.core_logic.ForwardModel import ForwardModel
 from DAFD.core_logic.InterModel import InterModel
-from DAFD.core_logic.InterModel_FlowStability import InterModel2
+from DAFD.core_logic.InterModelQM import InterModelQM
 
 from DAFD.helper_scripts.ModelHelper import ModelHelper
 
@@ -11,7 +11,7 @@ class DAFD_Interface:
 
 	def __init__(self):
 		self.it = InterModel()
-		self.it2 = InterModel2()
+		self.it2 = InterModelQM()
 		self.fw = self.it.fwd_model
 
 		self.MH = ModelHelper.get_instance() # type: ModelHelper
@@ -25,7 +25,7 @@ class DAFD_Interface:
 		results = self.it.interpolate(desired_vals,constraints)
 		return results
 
-	def runInterp2(self, desired_vals, constraints):
+	def runInterpQM(self, desired_vals, constraints):
 		""" Run the design automation tool"""
 		results = self.it2.interpolate(desired_vals,constraints)
 		return results
