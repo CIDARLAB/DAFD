@@ -11,11 +11,13 @@ constraints = {}
 desired_vals = {}
 features = {}
 
-stage = 0
+stage = -1
 tolerance_test = False
 with open(os.path.dirname(os.path.abspath(__file__)) + "/" + "DAFD/cmd_inputs.txt","r") as f:
 	for line in f:
 		line = line.strip()
+		if line == "":
+			continue
 		if line == "CONSTRAINTS":
 			stage=0
 			continue
@@ -28,6 +30,14 @@ with open(os.path.dirname(os.path.abspath(__file__)) + "/" + "DAFD/cmd_inputs.tx
 		elif line == "TOLERANCE":
 			tolerance_test=True
 			continue
+		elif line == "VERSATILITY":
+			versatility=True
+			ranking="all_overall_score"
+		elif line == "FLOW_STABILITY":
+			flow_stability = True
+			ranking="flow_stability"
+		elif "RANK_BY" in line:
+			ranking=line.split("=")[1]
 
 		if tolerance_test:
 			tolerance = float(line.split("=")[1])
@@ -46,13 +56,20 @@ with open(os.path.dirname(os.path.abspath(__file__)) + "/" + "DAFD/cmd_inputs.tx
 		if stage == 1:
 			param_name = line.split("=")[0]
 			param_val = float(line.split("=")[1])
-			desired_vals[param_name] = param_val
+			param_name = line.split("=")[0]
 
 		if stage == 2:
 			param_name = line.split("=")[0]
 			param_val = float(line.split("=")[1])
 			features[param_name] = param_val
 
+	if "regime" in constraints.keys() and "score" in ranking:
+		if constraints["regime"] == 1:
+			replace = "dripping"
+		elif constraints["regime"] == 2:
+			replace = "jetting"
+		split = ranking.split("_")
+		ranking = replace + "_" + split[1] + "_" + split[2]
 
 
 if stage == 2:
@@ -66,26 +83,36 @@ if stage == 2:
 	result_str += str(fwd_results["oil_rate"]) + "|"
 	result_str += str(fwd_results["water_rate"]) + "|"
 	result_str += str(fwd_results["inferred_droplet_size"]) + "|"
+	if flow_stability:
+		MetHelper = MetricHelper(fwd_results)
+		MetHelper.run_all_flow_stability()
+		fwd_results["flow_stability"] = MetHelper.point_flow_stability
+	if versatility:
+		try:
+			MetHelper.run_all_versatility()
+		except:
+			MetHelper = MetricHelper(fwd_results)
+			MetHelper.run_all_versatility()
+		fwd_results.update(MetHelper.versatility_results)
+
+
 	print(result_str)
 
 else:
-	FLOWSTAB = True
-	VERSATILITY = True
-	if FLOWSTAB or VERSATILITY:
+	if flow_stability or versatility:
 		results = di.runInterpQM(desired_vals, constraints)
 		for i, result in enumerate(results):
 			MetHelper = MetricHelper(result)
-			if FLOWSTAB:
+			if flow_stability:
 				MetHelper.run_all_flow_stability()
 				results[i]["flow_stability"] = MetHelper.point_flow_stability
-			if VERSATILITY:
+			if versatility:
 				MetHelper.run_all_versatility()
 				results[i].update(MetHelper.versatility_results)
 			results.update(di.runForward(result))
 		results_df = pd.DataFrame(results)
-		MetHelper.generate_report(flow_stability=FLOWSTAB, versatility=VERSATILITY)
-		results_df.to_csv("20220610_CMDResults")
-		#rev_results = results_df.sort
+		MetHelper.generate_report(flow_stability=flow_stability, versatility=versatility)
+		rev_results = results_df.sort_values(by=ranking)[0]
 		# TODO: PICK THE HIGHEST FLOW STABILITY AND INTEGRATE IT IN WITH THE REST OF THE TIMELINE
 	else:
 		rev_results = di.runInterp(desired_vals, constraints)
@@ -122,7 +149,7 @@ if tolerance_test:
 	TH.generate_report()
 
 flow_stability_test = True
-if flow_stability_test:
+if flow_stability or versatility:
 	from DAFD.metrics_study import metric_utils
 	if stage == 1: # Performance prediction first
 		# Get the base device design features
