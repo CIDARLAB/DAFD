@@ -1,6 +1,7 @@
-FLOW_STABILITY
-VERSATILITY
-RANK_BY=flow_stability
 DESIRED_VALS
 generation_rate=100
-droplet_size=50
+droplet_size=41
+CONSTRAINTS
+regime=2
+normalized_orifice_length=2:2
+aspect_ratio=4:4

@@ -143,12 +143,12 @@ class InterModelQM:
 		else:
 			denorm_drop_error = abs(droplet_inferred_size - prediction["droplet_size"])
 			drop_error = abs(self.MH.normalize(droplet_inferred_size,"droplet_size") - self.MH.normalize(prediction["droplet_size"],"droplet_size"))
-		print(prediction["droplet_size"])
-		print(prediction["generation_rate"])
+		#print(prediction["droplet_size"])
+		#print(prediction["generation_rate"])
 		merrors = [abs(self.MH.normalize(prediction[head], head) - self.norm_desired_vals_global[head]) for head in self.norm_desired_vals_global]
 		all_errors = sum(merrors) + drop_error
-		print(all_errors)
-		print()
+		#print(all_errors)
+		#print()
 
 		with open("InterResults.csv","a") as f:
 			f.write(",".join(map(str,self.MH.denormalize_set(x))) + "," + str(prediction['regime']) + "," + str(prediction['generation_rate']) +
@@ -201,6 +201,7 @@ class InterModelQM:
 		all_results = []
 		start_positions = []
 		while(True):
+			print(len(closest_indices))
 			# Get the closest point we haven't tried already
 			start_pos, closest_index, nval = self.get_closest_point(norm_desired_vals,
 																constraints=norm_constraints,
@@ -208,6 +209,7 @@ class InterModelQM:
 																skip_list=skip_list)
 			if closest_index == -1:
 				while(len(closest_indices) < top_k):
+
 					start_pos, closest_index, nval = self.get_closest_point(norm_desired_vals,
 																	  constraints=norm_constraints,
 																	  skip_list=closest_indices)
@@ -219,12 +221,12 @@ class InterModelQM:
 
 			prediction = self.fwd_model.predict(start_pos, normalized=True)
 			all_dat_labels = ["chip_number"] + self.MH.input_headers + ["regime"] + self.MH.output_headers
-			print(",".join(all_dat_labels))
-			print("Starting point")
-			print(self.MH.all_dat[closest_index])
-			print([self.MH.all_dat[closest_index][x] for x in all_dat_labels])
-			print("Start pred")
-			print(prediction)
+			#print(",".join(all_dat_labels))
+			#print("Starting point")
+			#print(self.MH.all_dat[closest_index])
+			#print([self.MH.all_dat[closest_index][x] for x in all_dat_labels])
+			#print("Start pred")
+			#print(prediction)
 
 			should_skip_optim_rate = True
 			should_skip_optim_size = True
@@ -258,14 +260,14 @@ class InterModelQM:
 			if "droplet_size" in desired_val_dict:
 				pred_size_error = abs(desired_val_dict["droplet_size"] - prediction["droplet_size"])
 				exp_size_error = abs(desired_val_dict["droplet_size"] - self.MH.all_dat[closest_index]["droplet_size"])
-				print(self.MH.all_dat[closest_index])
+				#print(self.MH.all_dat[closest_index])
 				pred_point = {x:self.MH.all_dat[closest_index][x] for x in self.MH.all_dat[closest_index]}
 				pred_point["generation_rate"] = prediction["generation_rate"]
-				print(self.MH.all_dat[closest_index])
+				#print(self.MH.all_dat[closest_index])
 				_,_,inferred_size = self.MH.calculate_formulaic_relations(pred_point)
 				inferred_size_error = abs(desired_val_dict["droplet_size"] - inferred_size)
-				print(inferred_size)
-				print(inferred_size_error)
+				#print(inferred_size)
+				#print(inferred_size_error)
 				if pred_size_error > 10 or inferred_size_error > 10 or exp_size_error > 5:
 					should_skip_optim_size = False
 
@@ -273,7 +275,7 @@ class InterModelQM:
 			if should_skip_optim_rate and should_skip_optim_size and should_skip_optim_constraints:
 				results = {x: self.MH.all_dat[closest_index][x] for x in self.MH.input_headers}
 				results["point_source"] = "Experimental"
-				print(results)
+				#print(results)
 				closest_indices.append(closest_index)
 				all_results.append(results)
 				start_positions.append(start_pos)
