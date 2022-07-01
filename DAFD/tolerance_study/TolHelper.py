@@ -78,7 +78,7 @@ class TolHelper:
                      "Warnings": self.warnings
                      }
         pickle.dump(to_report, open("tolerance_study/tol.p", "wb"))
-        os.system('cmd /k "pweave -f md2html tolerance_study/Tolerance_Report.pmd"')
+        os.system('cmd /k "pweave -f md2html DAFD/tolerance_study/Tolerance_Report.pmd"')
 
     def sobol_analysis(self, calc_second_order=True):
         si_size, si_gen = self.principal_feature_analysis(calc_second_order=calc_second_order)

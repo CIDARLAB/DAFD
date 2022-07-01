@@ -1,7 +1,9 @@
+CONSTRAINTS
+regime=2:2
+aspect_ratio=4:4
+normalized_water_inlet=2:2
 DESIRED_VALS
 generation_rate=100
-droplet_size=41
-CONSTRAINTS
-regime=2
-normalized_orifice_length=2:2
-aspect_ratio=4:4
+droplet_size=50
+TOLERANCE
+tolerance=10
