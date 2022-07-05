@@ -1,5 +1,6 @@
 FLOW_STABILITY
 VERSATILITY
+SORT_BY=size_versatility
 CONSTRAINTS
 regime=2:2
 aspect_ratio=4:4

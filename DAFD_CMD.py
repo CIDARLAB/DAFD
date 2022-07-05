@@ -13,6 +13,7 @@ features = {}
 
 stage = -1
 tolerance_test = False
+sort_by = None
 with open(os.path.dirname(os.path.abspath(__file__)) + "/" + "DAFD/cmd_inputs.txt","r") as f:
 	for line in f:
 		line = line.strip()
@@ -34,6 +35,8 @@ with open(os.path.dirname(os.path.abspath(__file__)) + "/" + "DAFD/cmd_inputs.tx
 		elif line == "VERSATILITY":
 			versatility=True
 			continue
+		elif line == "SORT_BY":
+			sort_by = line.split("=")[1]
 
 		if tolerance_test:
 			tolerance = float(line.split("=")[1])
@@ -87,9 +90,30 @@ else:
 				results[i].update(MetHelper.versatility_results)
 			results[i].update(di.runForward(result))
 		results_df = pd.DataFrame(results)
+		# hard code to default sort by flow_stability for both
+		if sort_by is None:
+			if versatility:
+				sort_by = "overall_versatility"
+			else:
+				sort_by = "flow_stability"
+
+		if "versatility" in sort_by:
+			reg_str = ""
+			try:
+				if constraints["regime"] == 1:
+					reg_str = "dripping"
+				else:
+					reg_str = "jetting"
+			except:
+				reg_str = "all"
+			#sort_by = reg_str + "_"
+			sort_by = reg_str + "_" + sort_by.split("_")[0] + "_" + "score"
+
+		results_df.sort_values(by=sort_by, ascending=False)
 		MetHelper.generate_report("../", flow_stability=flow_stability, versatility=versatility)
-		results_df.to_csv("20220705_CMDResults")
-		#rev_results = results_df.sort
+		results_df.to_csv("20220705_CMDResults.csv")
+		rev_results = results_df.to_dict(orient="records")[0]
+		fwd_results = di.runForward(rev_results)
 		# TODO: PICK THE HIGHEST FLOW STABILITY AND INTEGRATE IT IN WITH THE REST OF THE TIMELINE
 	else:
 		rev_results = di.runInterp(desired_vals, constraints)
