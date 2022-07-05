@@ -11,7 +11,7 @@ constraints = {}
 desired_vals = {}
 features = {}
 
-stage = 0
+stage = -1
 tolerance_test = False
 with open(os.path.dirname(os.path.abspath(__file__)) + "/" + "DAFD/cmd_inputs.txt","r") as f:
 	for line in f:
@@ -27,6 +27,12 @@ with open(os.path.dirname(os.path.abspath(__file__)) + "/" + "DAFD/cmd_inputs.tx
 			continue
 		elif line == "TOLERANCE":
 			tolerance_test=True
+			continue
+		elif line == "FLOW_STABILITY":
+			flow_stability=True
+			continue
+		elif line == "VERSATILITY":
+			versatility=True
 			continue
 
 		if tolerance_test:
@@ -69,30 +75,28 @@ if stage == 2:
 	print(result_str)
 
 else:
-	FLOWSTAB = True
-	VERSATILITY = True
-	if FLOWSTAB or VERSATILITY:
+	if flow_stability or versatility:
 		results = di.runInterpQM(desired_vals, constraints)
 		for i, result in enumerate(results):
-			MetHelper = MetricHelper(result)
-			if FLOWSTAB:
+			MetHelper = MetricHelper(result, di=di)
+			if flow_stability:
 				MetHelper.run_all_flow_stability()
 				results[i]["flow_stability"] = MetHelper.point_flow_stability
-			if VERSATILITY:
+			if versatility:
 				MetHelper.run_all_versatility()
 				results[i].update(MetHelper.versatility_results)
-			results.update(di.runForward(result))
+			results[i].update(di.runForward(result))
 		results_df = pd.DataFrame(results)
-		MetHelper.generate_report(flow_stability=FLOWSTAB, versatility=VERSATILITY)
-		results_df.to_csv("20220610_CMDResults")
+		MetHelper.generate_report("../", flow_stability=flow_stability, versatility=versatility)
+		results_df.to_csv("20220705_CMDResults")
 		#rev_results = results_df.sort
 		# TODO: PICK THE HIGHEST FLOW STABILITY AND INTEGRATE IT IN WITH THE REST OF THE TIMELINE
 	else:
 		rev_results = di.runInterp(desired_vals, constraints)
 		fwd_results = di.runForward(rev_results)
 
-	print(rev_results)
-	print(fwd_results)
+	#print(rev_results)
+	#print(fwd_results)
 
 
 	result_str = "BEGIN:"

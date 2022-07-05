@@ -168,9 +168,10 @@ class MetricHelper:
         return None
 
 
-    def generate_report(self, filepath):
+    def generate_report(self, filepath, versatility=False, flow_stability=False):
         #TODO: PLACEHOLDER FOR THIS RIGHT NOW
-        self.chip_results.to_csv(filepath)
+        return None
+        #self.chip_results.to_csv(filepath)
         # TODO: make this a similar thing; figure out later
         # to_report = {"features": self.features_denormalized,
         #              "tolerance": self.tolerance,
