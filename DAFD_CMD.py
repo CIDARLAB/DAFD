@@ -109,7 +109,7 @@ else:
 			#sort_by = reg_str + "_"
 			sort_by = reg_str + "_" + sort_by.split("_")[0] + "_" + "score"
 
-		results_df.sort_values(by=sort_by, ascending=False)
+		results_df.sort_values(by=sort_by, ascending=False, inplace=True)
 		MetHelper.generate_report("../", flow_stability=flow_stability, versatility=versatility)
 		results_df.to_csv("20220705_CMDResults.csv")
 		rev_results = results_df.to_dict(orient="records")[0]

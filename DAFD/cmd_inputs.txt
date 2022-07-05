@@ -1,12 +1,8 @@
 FLOW_STABILITY
 VERSATILITY
-SORT_BY=size_versatility
+SORT_BY=overall_versatility
 CONSTRAINTS
-regime=2:2
-aspect_ratio=4:4
-normalized_water_inlet=2:2
+regime=1:1
 DESIRED_VALS
 generation_rate=100
 droplet_size=100
-TOLERANCE
-tolerance=10
