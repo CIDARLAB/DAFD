@@ -24,6 +24,13 @@ class MetricHelper:
             self.di = DAFD_Interface()
         else:
             self.di = di
+    #
+    # def __init__(self, di=None):
+    #     if di == None:
+    #         self.di = DAFD_Interface()
+    #     else:
+    #         self.di = di
+
     def run_all_versatility(self):
         # make sweep
         if self.chip_results is None:

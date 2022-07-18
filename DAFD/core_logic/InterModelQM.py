@@ -207,12 +207,18 @@ class InterModelQM:
 																max_drop_exp_error=5,
 																skip_list=skip_list)
 			if closest_index == -1:
+				to_skip = closest_indices.copy()
 				while(len(closest_indices) < top_k):
 					start_pos, closest_index, nval = self.get_closest_point(norm_desired_vals,
 																	  constraints=norm_constraints,
-																	  skip_list=closest_indices)
-					closest_indices.append(closest_index)
-					start_positions.append(start_pos)
+																	  skip_list=to_skip)
+					print(f"COMPARE: {self.check_result_similarities(start_pos, start_positions, constraints)} len: {len(closest_indices)}")
+					if self.check_result_similarities(start_pos, start_positions, constraints):
+						closest_indices.append(closest_index)
+						to_skip.append(closest_index)
+						start_positions.append(start_pos)
+					else:
+						to_skip.append(closest_index)
 				# Give up if we have tried every point and then optimize based on the closest point
 				break
 			skip_list.append(closest_index)
@@ -270,7 +276,8 @@ class InterModelQM:
 					should_skip_optim_size = False
 
 			# Return experimental point if it meets criteria
-			if should_skip_optim_rate and should_skip_optim_size and should_skip_optim_constraints:
+			if should_skip_optim_rate and should_skip_optim_size and should_skip_optim_constraints \
+					and self.check_result_similarities(self.MH.all_dat[closest_index], start_positions, constraints):
 				results = {x: self.MH.all_dat[closest_index][x] for x in self.MH.input_headers}
 				results["point_source"] = "Experimental"
 				print(results)
@@ -378,3 +385,23 @@ class InterModelQM:
 		results["point_source"] = "Predicted"
 		return results
 
+	def check_result_similarities(self, to_add, results, constraints, denorm_tol=5, norm_tol=.1):
+		cols_to_compare = self.MH.input_headers[:-2]
+		if len(results) == 0:
+			return True
+		to_add_denorm = {x: np.round(self.MH.denormalize(to_add[i], x), 1) for i, x in enumerate(cols_to_compare)}
+		for pt in results:
+			pt_denorm = {x: np.round(self.MH.denormalize(pt[i], x),1) for i, x in enumerate(cols_to_compare)}
+			if to_add_denorm == pt_denorm:
+				return False
+			else:
+				for k in pt_denorm.keys():
+					if k in constraints:
+						continue
+					if k == "orifice_size":
+						if np.abs(pt_denorm[k] - to_add_denorm[k]) <= denorm_tol:
+							return False
+					else:
+						if np.abs(pt_denorm[k] - to_add_denorm[k]) <= norm_tol:
+							return False
+		return True
