@@ -395,13 +395,14 @@ class InterModelQM:
 			if to_add_denorm == pt_denorm:
 				return False
 			else:
+				sim = []
 				for k in pt_denorm.keys():
 					if k in constraints:
 						continue
 					if k == "orifice_size":
-						if np.abs(pt_denorm[k] - to_add_denorm[k]) <= denorm_tol:
-							return False
+						sim.append(np.abs(pt_denorm[k] - to_add_denorm[k]) <= denorm_tol)
 					else:
-						if np.abs(pt_denorm[k] - to_add_denorm[k]) <= norm_tol:
-							return False
+						sim.append(np.abs(pt_denorm[k] - to_add_denorm[k]) <= norm_tol)
+					if np.sum(sim) == len(sim):
+						return False
 		return True

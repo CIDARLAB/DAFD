@@ -3,7 +3,6 @@ VERSATILITY
 SORT_BY=overall_versatility
 CONSTRAINTS
 regime=1:1
-orifice_size=100:100
 DESIRED_VALS
 generation_rate=100
-droplet_size=100
+droplet_size=125
