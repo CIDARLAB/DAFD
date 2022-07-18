@@ -212,7 +212,6 @@ class InterModelQM:
 					start_pos, closest_index, nval = self.get_closest_point(norm_desired_vals,
 																	  constraints=norm_constraints,
 																	  skip_list=to_skip)
-					print(f"COMPARE: {self.check_result_similarities(start_pos, start_positions, constraints)} len: {len(closest_indices)}")
 					if self.check_result_similarities(start_pos, start_positions, constraints):
 						closest_indices.append(closest_index)
 						to_skip.append(closest_index)
@@ -385,11 +384,14 @@ class InterModelQM:
 		results["point_source"] = "Predicted"
 		return results
 
-	def check_result_similarities(self, to_add, results, constraints, denorm_tol=5, norm_tol=.1):
+	def check_result_similarities(self, to_add, results, constraints, denorm_tol=10, norm_tol=.25):
 		cols_to_compare = self.MH.input_headers[:-2]
 		if len(results) == 0:
 			return True
-		to_add_denorm = {x: np.round(self.MH.denormalize(to_add[i], x), 1) for i, x in enumerate(cols_to_compare)}
+		if type(to_add) == list:
+			to_add_denorm = {x: np.round(self.MH.denormalize(to_add[i], x), 1) for i, x in enumerate(cols_to_compare)}
+		else:
+			to_add_denorm = {x: np.round(to_add[x],1) for i,x in enumerate(cols_to_compare)}
 		for pt in results:
 			pt_denorm = {x: np.round(self.MH.denormalize(pt[i], x),1) for i, x in enumerate(cols_to_compare)}
 			if to_add_denorm == pt_denorm:
@@ -403,6 +405,6 @@ class InterModelQM:
 						sim.append(np.abs(pt_denorm[k] - to_add_denorm[k]) <= denorm_tol)
 					else:
 						sim.append(np.abs(pt_denorm[k] - to_add_denorm[k]) <= norm_tol)
-					if np.sum(sim) == len(sim):
-						return False
+				if np.sum(sim) == len(sim):
+					return False
 		return True

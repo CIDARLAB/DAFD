@@ -1,8 +1,8 @@
 FLOW_STABILITY
 VERSATILITY
-SORT_BY=overall_versatility
+SORT_BY=flow_stability
 CONSTRAINTS
 regime=1:1
 DESIRED_VALS
 generation_rate=100
-droplet_size=125
+droplet_size=100
