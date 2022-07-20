@@ -54,7 +54,9 @@ class InterModel:
 		"""
 
 		use_regime_2 = False
-		if "orifice_size" in constraints and "droplet_size" in desired_vals and self.MH.denormalize(constraints["orifice_size"][1],"orifice_size") < self.MH.denormalize(desired_vals["droplet_size"],"droplet_size"):
+		if "orifice_size" in constraints and "droplet_size" in desired_vals and\
+				self.MH.denormalize(constraints["orifice_size"][1],"orifice_size") < self.MH.denormalize(desired_vals["droplet_size"],"droplet_size")\
+				and self.constrained_regime != 1:
 			use_regime_2 = True
 
 		closest_point = {}

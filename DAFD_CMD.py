@@ -14,6 +14,9 @@ features = {}
 stage = -1
 tolerance_test = False
 sort_by = None
+flow_stability = False
+versatility = False
+
 with open(os.path.dirname(os.path.abspath(__file__)) + "/" + "DAFD/cmd_inputs.txt","r") as f:
 	for line in f:
 		line = line.strip()

@@ -3,6 +3,7 @@ VERSATILITY
 SORT_BY=flow_stability
 CONSTRAINTS
 regime=1:1
+orifice_size=100:100
 DESIRED_VALS
-generation_rate=100
-droplet_size=100
+generation_rate=80
+droplet_size=110

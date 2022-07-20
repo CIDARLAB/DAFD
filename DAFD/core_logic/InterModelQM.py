@@ -55,7 +55,9 @@ class InterModelQM:
 		"""
 
 		use_regime_2 = False
-		if "orifice_size" in constraints and "droplet_size" in desired_vals and self.MH.denormalize(constraints["orifice_size"][1],"orifice_size") < self.MH.denormalize(desired_vals["droplet_size"],"droplet_size"):
+		if "orifice_size" in constraints and "droplet_size" in desired_vals \
+				and self.MH.denormalize(constraints["orifice_size"][1],"orifice_size") < self.MH.denormalize(desired_vals["droplet_size"],"droplet_size") \
+				and self.constrained_regime != 1:
 			use_regime_2 = True
 
 		closest_point = {}
@@ -66,7 +68,6 @@ class InterModelQM:
 				continue
 			if use_regime_2 and self.MH.train_regime_dat[i] != 2:
 				continue
-
 			if max_drop_exp_error != -1 and "droplet_size" in desired_vals:
 				exp_error = abs(self.MH.denormalize(desired_vals["droplet_size"],"droplet_size") - self.MH.train_labels_dat["droplet_size"][i])
 				if exp_error > max_drop_exp_error:
@@ -164,7 +165,7 @@ class InterModelQM:
 					values[i] = constraints[head][1]
 
 
-	def interpolate(self,desired_val_dict,constraints, top_k=5):
+	def interpolate(self,desired_val_dict,constraints, top_k=3):
 		"""Return an input set within the given constraints that produces the output set
 		The core part of DAFD
 		Args:
