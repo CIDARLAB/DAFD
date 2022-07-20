@@ -49,7 +49,8 @@ class MetricHelper:
         if bool(ca_range):
             self.ca_range = metric_utils.make_sweep_range(ca_range, sweep_size)
         else:
-            self.ca_range = np.concatenate([np.arange(.05, .11, step=.01), np.linspace(.161111, 1.05, 9)]).round(4)
+            #self.ca_range = np.concatenate([np.arange(.05, .11, step=.01), np.linspace(.161111, 1.05, 9)]).round(4)
+            self.ca_range = np.concatenate([np.arange(.05, .5, step=.025), np.arange(.5, 1, step=.1)]).round(4) #TODO: consider changing back
         if bool(q_range):
             self.q_range = metric_utils.make_sweep_range(q_range, sweep_size)
         else:
