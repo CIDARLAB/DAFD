@@ -4,7 +4,10 @@ import numpy as np
 import pandas as pd
 from scipy.spatial.distance import cdist
 from scipy.spatial import ConvexHull
-
+from matplotlib.patches import Polygon
+import pickle
+import os
+import matplotlib.pyplot as plt
 
 class MetricHelper:
     """This class contains the main functions needed for the metrics study."""
@@ -122,6 +125,7 @@ class MetricHelper:
                 results[f"{type}_overall_score"] = -1
         return results
 
+
     def calc_flow_stability_score(self):
         boundary_points = self.chip_results.loc[self.chip_results.boundary == 1, :]
         ## for p oints on boundary, set to 0
@@ -140,8 +144,7 @@ class MetricHelper:
             base_distance = cdist([base_flows], boundary_flows)
             return np.min(base_distance)
         else:
-            return float(base_flow_stability.float_stablity)
-
+            return float(base_flow_stability.flow_stability)
 
     def _get_adjacent_points(self, params, base_idxs, flow=True):
         adjacent_pts = []
@@ -172,22 +175,115 @@ class MetricHelper:
                 return boundary
         return boundary
 
-    def plot_all(self):
-        return None
+    def _normed_to_val(self, normed, ranges):
+        denormed = []
+        for n in normed:
+            if n % 1 == 0:
+                denormed.append(ranges[int(n)])
+            else:
+                denormed.append(np.mean([ranges[int(n - .5)], ranges[int(n + .5)]]))
+        return denormed
+
+    def _define_boundary(self, b, all_ca, all_q):
+        b1 = b.loc[b.regime == 1, :]
+        b2 = b.loc[b.regime == 2, :]
+
+        ca1n = [np.where(all_ca == c)[0][0] for c in np.array(b1.capillary_number)]
+        q1n = [np.where(all_q == q)[0][0] for q in np.array(b1.flow_rate_ratio)]
+
+        ca2n = [np.where(all_ca == c)[0][0] for c in np.array(b2.capillary_number)]
+        q2n = [np.where(all_q == q)[0][0] for q in np.array(b2.flow_rate_ratio)]
+
+        points1 = np.array([[ca1n[i], q1n[i]] for i in range(len(ca1n))])
+        points2 = np.array([[ca2n[i], q2n[i]] for i in range(len(ca2n))])
+
+        distances = cdist(points1, points2)
+        min_distances = np.min(cdist(points1, points2), axis=1)
+        boundary_points = []
+        for i in range(len(distances)):
+            adj_index = np.where(distances[i, :] == min_distances[i])[0]
+            for idx in adj_index:
+                boundary_points.append(np.mean([points1[i], points2[idx]], axis=0))
+        boundary_points = np.array(boundary_points)
+        boundary_points = np.flipud(boundary_points[boundary_points[:, 0].argsort()])
+        boundary_points = np.flipud(boundary_points[boundary_points[:, 1].argsort(kind="mergesort")])
+
+        return np.array([self._normed_to_val(boundary_points[:, 0], all_ca), self._normed_to_val(boundary_points[:, 1], all_q)]).T
 
 
-    def generate_report(self, filepath, versatility=False, flow_stability=False):
-        #TODO: PLACEHOLDER FOR THIS RIGHT NOW
-        return None
-        #self.chip_results.to_csv(filepath)
+    def _plot_metrics(self):
+        fig, axs = plt.subplots(1, 2, figsize=[12.5, 5])
+        colors = ["#5B84C4", "#FB9B50"]
+
+        out = self.chip_results
+        b = out.loc[out.boundary == 1, :]
+        all1 = out.loc[out.regime == 1, :]
+        all2 = out.loc[out.regime == 2, :]
+
+        axs[0].plot(all1.droplet_size, all1.generation_rate, ".", color=colors[0])
+        axs[0].plot(all2.droplet_size, all2.generation_rate, ".", color=colors[1])
+        axs[0].plot(self.features_normalized["droplet_size"], self.features_normalized["generation_rate"], "k*", ms=10)
+        for i, data in enumerate([all1, all2]):
+            sizes = np.array(data.droplet_size)
+            rates = np.array(data.generation_rate)
+            points = np.array([[sizes[i], rates[i]] for i in range(len(sizes))])
+            hull = ConvexHull(points)
+
+            for simplex in hull.simplices:
+                axs[0].plot(points[simplex, 0], points[simplex, 1], '-', color=colors[i])
+
+            cent = np.mean(points, 0)
+            pts = []
+            for pt in points[hull.simplices]:
+                pts.append(pt[0].tolist())
+                pts.append(pt[1].tolist())
+
+            pts.sort(key=lambda p: np.arctan2(p[1] - cent[1],
+                                              p[0] - cent[0]))
+            pts = pts[0::2]  # Deleting duplicates
+            pts.insert(len(pts), pts[0])
+            k = 1
+            poly = Polygon(k * (np.array(pts) - cent) + cent,
+                           facecolor=colors[i], alpha=0.2)
+            poly.set_capstyle('round')
+            axs[0].add_patch(poly)
+
+        axs[0].legend(["Dripping", "Jetting", "DAFD Solution"], loc="upper right")
+        axs[0].set_xlabel("Droplet Size")
+        axs[0].set_ylabel("Generation Rate")
+        axs[0].set_xlim([0, 350])
+        axs[0].set_ylim([0, 350])
+
+        axs[1].plot(all1.capillary_number, all1.flow_rate_ratio, ".", color=colors[0])
+        axs[1].plot(all2.capillary_number, all2.flow_rate_ratio, ".", color=colors[1])
+        axs[1].plot(self.features_normalized["capillary_number"], self.features_normalized["flow_rate_ratio"], "k*", ms=10)
+
+        denorm_boundary = self._define_boundary(b, np.unique(out.capillary_number), np.unique(out.flow_rate_ratio))
+        points_r1 = np.append(denorm_boundary, np.array([[0.05, 2], [0.05, 22]]), axis=0)
+        points_r2 = np.append(denorm_boundary, np.array([[0.9, 2], [0.9, 22]]), axis=0)
+
+        poly_r1 = Polygon(points_r1, facecolor=colors[0], alpha=0.2)
+        poly_r1.set_capstyle('round')
+        axs[1].add_patch(poly_r1)
+
+        poly_r2 = Polygon(points_r2, facecolor=colors[1], alpha=0.2)
+        poly_r2.set_capstyle('round')
+        axs[1].add_patch(poly_r2)
+        axs[1].plot(denorm_boundary[:,0], denorm_boundary[:,1], "r-")
+        axs[1].set_xlim([0.05, 0.9])
+        axs[1].set_ylim([2, 22])
+        axs[1].set_xlabel("Capillary Number")
+        axs[1].set_ylabel("Flow Rate Ratio")
+        axs[1].legend(["Dripping", "Jetting", "DAFD Solution"], loc="upper right")
+        plt.savefig("DAFD/metrics_study/metrics_results.png")
+
+    def generate_report(self, to_report):
         # TODO: make this a similar thing; figure out later
-        # to_report = {"features": self.features_denormalized,
-        #              "tolerance": self.tolerance,
-        #              "base_performance": self.di.runForward(self.features_normalized),
-        #              "Fluids": {"Dispersed phase": "DI Water",
-        #                         "Continuous phase": "350 nf Mineral oil (viscosity: 57.2 mPa.s )",
-        #                         "Surfactant": "5% V/V Span 80"},
-        #              "Warnings": self.warnings
-        #              }
-        # pickle.dump(to_report, open("tolerance_study/tol.p", "wb"))
-        # os.system('cmd /k "pweave -f md2html tolerance_study/Tolerance_Report.pmd"')
+        to_report["Fluids"] = {"Dispersed phase": "DI Water",
+                               "Continuous phase": "350 nf Mineral oil (viscosity: 57.2 mPa.s)",
+                               "Surfactant": "5% V/V Span 80"}
+        pickle.dump(to_report, open("DAFD/metrics_study/metrics.p", "wb"))
+        self.features_normalized = to_report["results_df"].to_dict(orient="records")[0]
+        self._plot_metrics()
+
+        os.system('cmd /k "pweave -f md2html DAFD/metrics_study/Metrics_Report.pmd"')

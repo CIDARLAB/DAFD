@@ -82,7 +82,7 @@ if stage == 2:
 
 else:
 	if flow_stability or versatility:
-		results = di.runInterpQM(desired_vals, constraints)
+		results = di.runInterpQM(desired_vals, constraints.copy())
 		for i, result in enumerate(results):
 			MetHelper = MetricHelper(result, di=di)
 			if flow_stability:
@@ -113,7 +113,14 @@ else:
 			sort_by = reg_str + "_" + sort_by.split("_")[0] + "_" + "score"
 
 		results_df.sort_values(by=sort_by, ascending=False, inplace=True)
-		MetHelper.generate_report("../", flow_stability=flow_stability, versatility=versatility)
+		report_info = {
+			"regime": reg_str,
+			"results_df": results_df,
+			"sort_by": sort_by
+		}
+		MetHelper = MetricHelper(results_df.to_dict(orient="records")[0], di=di)
+		MetHelper.run_all_flow_stability()
+		MetHelper.generate_report(report_info)
 		results_df.to_csv("placeholder.csv")
 		rev_results = results_df.to_dict(orient="records")[0]
 		fwd_results = di.runForward(rev_results)

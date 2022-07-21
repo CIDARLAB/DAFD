@@ -1,0 +1,156 @@
+# DAFD Design Report
+
+```python echo=False
+#This is a script to put all default html templates (such as tables) and functions
+top = """
+<html>
+<head>
+<style>
+table, th, td {
+  border: 2px solid black;
+  border-collapse: collapse;
+  text-align: center;
+    font-size: 14px;
+    padding: 4px;
+}
+th {
+    background-color: #c0c0c0;
+}
+
+</style>
+</head>
+<body>"""
+
+bottom = """</body>
+</html>"""
+
+def make_list_text(input_dict, num=3):
+    keynames = list(input_dict.keys())
+
+    values = []
+    for value in input_dict.values():
+        if type(value) is str:
+            values.append(value)
+        else:
+            values.append(np.around(value,num))
+    output = ""
+    for i in range(len(keynames)):
+        output += "<b>{}:</b> {} &ensp;".format(keynames[i], values[i])
+    return output
+
+def make_table_rows(input_dict, num=3):
+    keynames = list(input_dict.keys())
+
+    values = []
+
+    for value in input_dict.values():
+        if type(value) is str:
+            values.append(value)
+        else:
+            values.append(np.around(value,num))
+    headers = "<tr> \n"
+    vals = "<tr> \n"
+    for i in range(len(keynames)):
+        headers += "<th>{}</th> \n".format(keynames[i])
+        vals += "<td>{}</td> \n".format(values[i])
+    headers += "</tr> \n"
+    vals += "</tr> \n"
+
+    return headers, vals
+```
+
+Thank you for using DAFD, the first machine-learning design automation tool for droplet microfluidics. Below is a summary
+of the results of your design request, along with flow stabilty and versatility scores for each.
+
+# Droplet Generator Overview
+### Fluid Properties:
+```python echo=False
+import pickle
+from IPython.display import Markdown as md
+import numpy as np
+run_info = pickle.load(open( "DAFD/metrics_study/metrics.p", "rb" ))
+
+headers, vals = make_table_rows(run_info["Fluids"])
+table = "<table style=\"width:60%;margin-left:auto;margin-right:auto;\"> \n"
+table += headers + vals + "</table> \n"
+md(top + table + bottom)
+```
+
+### Droplet Generator Designs:
+Using **<%len(run_info["results_df"])%>** candidate designs, the versatility and flow stability metrics of each candidate generator
+was calculated. Output designs were ranked according to **<%run_info["sort_by"]%>. Below, you can see the
+performance ranges of the top-ranked devices regime (versatility) as well as how close the device
+is to a regime boundary (flow stability). More info on this methodology can be found here
+(Note: this link currently not active, publication is in review).
+
+
+```python echo=False
+features = run_info["results_df"].to_dict(orient="records")[0].copy()
+microns = ["orifice_size", "depth", "outlet_width", "orifice_length", "water_inlet", "oil_inlet"]
+mlhr = ["oil_flow"]
+ulmin = ["water_flow"]
+for key in list(features.keys()):
+    if key in microns:
+        features[str.capitalize(key).replace("_", " ") + " (\u03BCm)"] = features.pop(key)
+    elif key in mlhr:
+        features[str.capitalize(key).replace("_", " ") + " (mL/hr)"] = features.pop(key)
+    else:
+        features[str.capitalize(key).replace("_", " ") + " (\u03BCL/min)"] = features.pop(key)
+
+headers, vals = make_table_rows(features)
+var_types = """
+    <tr>
+        <th colspan="6">Geometric Parameters:</th>
+        <th colspan="2">Flow Parameters:</th>
+    </tr>
+"""
+table = "<table style=\"width:100%;margin-left:auto;margin-right:auto;\"> \n"
+table += var_types + headers + vals + "</table> \n"
+md(table)
+```
+
+### Expected Performance:
+```python echo=False
+
+outputs = run_info["results_df"].to_dict(orient="records")[0].copy()
+del outputs["oil_rate"]
+del outputs["water_rate"]
+outputs["Generation rate (Hz)"] = outputs.pop("generation_rate")
+outputs["Droplet size (\u03BCm)"] = outputs.pop("droplet_size")
+outputs["Inferred droplet size (\u03BCm)"] = outputs.pop("inferred_droplet_size")
+
+for key in list(outputs.keys()):
+    if key == "regime" or key == "Regime":
+        if int(outputs[key]) == 1:
+            outputs["Regime"] = "Dripping"
+        else:
+            outputs["Regime"] = "Jetting"
+        del outputs[key]
+    else:
+        outputs[key] = float(outputs[key])
+headers, vals = make_table_rows(outputs, num=1)
+table = "<table style=\"width:60%;margin-left:auto;margin-right:auto;\"> \n"
+table += headers + vals + "</table> \n"
+md(table)
+```
+
+
+### Design Quality Metrics:
+Using **<%len(run_info["results_df"])%>** candidate designs, the versatility and flow stability metrics of each candidate generator was calculated.
+Output designs were ranked according to <Sorting metric>. Below, you can see the performance ranges of the top-ranked
+devices regime (versatility) as well as how close the device is to a regime boundary (flow stability). More info on this
+methodology can be found here (Note: this link currently not active, publication is in review).
+
+
+### Metrics Results:
+![figure 1](metrics_results.png)
+
+### Questions? Contact Us:
+Corresponding Authors: David McIntyre ([dpmc@bu.edu](dpmc@bu.edu)) & Prof. Douglas Densmore ([dougd@bu.edu](dougd@bu.edu))
+
+<html>
+<div id="content">
+    <img src="../all_logos.png" class="ribbon"/>
+</div>
+</html>
+
