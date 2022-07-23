@@ -120,6 +120,7 @@ else:
 		}
 		MetHelper = MetricHelper(results_df.to_dict(orient="records")[0], di=di)
 		MetHelper.run_all_flow_stability()
+		report_info["feature_denormalized"] = MetHelper.features_denormalized
 		MetHelper.generate_report(report_info)
 		results_df.to_csv("placeholder.csv")
 		rev_results = results_df.to_dict(orient="records")[0]
