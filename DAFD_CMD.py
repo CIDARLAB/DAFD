@@ -130,7 +130,6 @@ else:
 					reg_str = "jetting"
 			except:
 				reg_str = "all"
-			#sort_by = reg_str + "_"
 			sort_by = reg_str + "_" + sort_by.split("_")[0] + "_" + "score"
 
 		results_df.sort_values(by=sort_by, ascending=False, inplace=True)

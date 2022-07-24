@@ -5,6 +5,8 @@ from PIL import ImageTk, Image
 from tkinter import ttk
 import tkinter.messagebox
 from DAFD.bin.DAFD_Interface import DAFD_Interface
+import pandas as pd
+from DAFD.metrics_study.MetricHelper import MetricHelper
 
 class DAFD_GUI:
 	"""A class that produces a windowed interface for DAFD"""
@@ -147,12 +149,14 @@ class DAFD_GUI:
 			"Jetting size versatility",
 			"Jetting rate versatility"
 		]
+
+
 		clicked = tkinter.StringVar()
 		clicked.set("Flow stability")
 		metrics_entry = tkinter.OptionMenu(metrics_opt_frame, clicked, *options)
 		metrics_entry.pack(side="left")
 		metrics_entry.configure(background="white")
-		self.entries_dict["sort_by"] = metrics_entry
+		self.entries_dict["sort_by"] = clicked
 
 		# Pack Tolerance Study Together
 		tolerance_frame = tkinter.Frame(self.root, pady=20)
@@ -258,7 +262,57 @@ class DAFD_GUI:
 					desired_vals[param_name] = wanted_val
 
 		# Return and display the results
-		results = self.di.runInterp(desired_vals,constraints)
+
+		if bool(self.entries_dict["metrics_test"].getvar(name="PY_VAR0")):
+			sort_by = self.entries_dict["sort_by"].get()
+			sort_by = str.lower(sort_by).replace(" ", "_")
+			if "versatility" in sort_by and "dripping" not in sort_by and "jetting" not in sort_by:
+				sort_by = "all_" + sort_by
+			top_k = self.entries_dict["metrics_top_k"].get()
+			if top_k == "":
+				top_k  = 3
+			else:
+				top_k = int(top_k)
+			results = self.di.runInterpQM(desired_vals, constraints.copy(), top_k=top_k)
+			for i, result in enumerate(results):
+				MetHelper = MetricHelper(result, di=self.di)
+				MetHelper.run_all_flow_stability()
+				results[i]["flow_stability"] = MetHelper.point_flow_stability
+				MetHelper.run_all_versatility()
+				results[i].update(MetHelper.versatility_results)
+				results[i].update(self.di.runForward(result))
+			results_df = pd.DataFrame(results)
+			if sort_by is None:
+					sort_by = "flow_stability"
+			reg_str = "all"
+			if "versatility" in sort_by:
+				try:
+					if constraints["regime"] == 1:
+						reg_str = "dripping"
+					else:
+						reg_str = "jetting"
+				except:
+					reg_str = "all"
+				sort_by = reg_str + "_" + sort_by.split("_")[0] + "_" + "score"
+
+			results_df.sort_values(by=sort_by, ascending=False, inplace=True)
+			report_info = {
+				"regime": reg_str,
+				"results_df": results_df,
+				"sort_by": sort_by
+			}
+			MetHelper = MetricHelper(results_df.to_dict(orient="records")[0], di=self.di)
+			MetHelper.run_all_flow_stability()
+			report_info["feature_denormalized"] = MetHelper.features_denormalized
+			MetHelper.generate_report(report_info)
+			results_df.to_csv("placeholder.csv")
+			rev_results = results_df.to_dict(orient="records")[0]
+
+
+
+
+		else:
+			results = self.di.runInterp(desired_vals, constraints)
 
 		# Run Tolerance Test if Specified
 		if bool(self.entries_dict["tolerance_test"].getvar(name="PY_VAR0")):

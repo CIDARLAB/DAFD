@@ -25,9 +25,9 @@ class DAFD_Interface:
 		results = self.it.interpolate(desired_vals,constraints)
 		return results
 
-	def runInterpQM(self, desired_vals, constraints):
+	def runInterpQM(self, desired_vals, constraints, top_k=3):
 		""" Run the design automation tool"""
-		results = self.it2.interpolate(desired_vals,constraints)
+		results = self.it2.interpolate(desired_vals,constraints, top_k=top_k)
 		return results
 
 	def runForward(self, features):
