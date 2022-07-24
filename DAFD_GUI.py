@@ -90,6 +90,70 @@ class DAFD_GUI:
 			param_entry.configure(background="white")
 			self.entries_dict[param_name] = param_entry
 
+		# Pack Metrics Study Together
+		metrics_frame = tkinter.Frame(self.root, pady=20)
+		metrics_frame.pack(side="top")
+		metrics_frame.configure(background="white")
+
+		metrics_header = tkinter.Label(metrics_frame)
+		metrics_header.pack(side="top")
+		metrics_header["text"] = "Metrics Options"
+		metrics_header.config(font=("Times", 20))
+		metrics_header.configure(background="white")
+
+		metrics_opt_frame = tkinter.Frame(metrics_frame)
+		metrics_opt_frame.pack(side="top")
+		metrics_opt_frame.configure(background="white")
+		metrics_label = tkinter.Label(metrics_opt_frame,width=40,anchor="e")
+		metrics_label.pack(side="left")
+		metrics_label["text"] = "Perform Metrics Study? "
+		metrics_label.configure(background="white")
+		check_var = tkinter.IntVar(value=0)
+		metrics_entry = tkinter.Checkbutton(metrics_opt_frame, variable=check_var)
+		metrics_entry.pack(side="left")
+		metrics_entry.configure(background="white")
+		self.entries_dict["metrics_test"] = metrics_entry
+
+		# Top k options
+		metrics_opt_frame = tkinter.Frame(metrics_frame)
+		metrics_opt_frame.pack(side="top")
+		metrics_opt_frame.configure(background="white")
+		metrics_label = tkinter.Label(metrics_opt_frame,width=40,anchor="e")
+		metrics_label.pack(side="left")
+		metrics_label["text"] = "Number of candidates (1-5, default 3): "
+		metrics_label.configure(background="white")
+		metrics_entry = tkinter.Entry(metrics_opt_frame)
+		metrics_entry.pack(side="left")
+		metrics_entry.configure(background="white")
+		self.entries_dict["metrics_top_k"] = metrics_entry
+
+		# Sort by options
+		metrics_opt_frame = tkinter.Frame(metrics_frame)
+		metrics_opt_frame.pack(side="top")
+		metrics_opt_frame.configure(background="white")
+		metrics_label = tkinter.Label(metrics_opt_frame, width=40, anchor="e")
+		metrics_label.pack(side="left")
+		metrics_label["text"] = "Metric to sort by?"
+		metrics_label.configure(background="white")
+		options = [
+			"Flow stability",
+			"Overall versatility",
+			"Size versatility",
+			"Rate versatility",
+			"Dripping overall versatility",
+			"Dripping size versatility",
+			"Dripping rate versatility",
+			"Jetting overall versatility",
+			"Jetting size versatility",
+			"Jetting rate versatility"
+		]
+		clicked = tkinter.StringVar()
+		clicked.set("Flow stability")
+		metrics_entry = tkinter.OptionMenu(metrics_opt_frame, clicked, *options)
+		metrics_entry.pack(side="left")
+		metrics_entry.configure(background="white")
+		self.entries_dict["sort_by"] = metrics_entry
+
 		# Pack Tolerance Study Together
 		tolerance_frame = tkinter.Frame(self.root, pady=20)
 		tolerance_frame.pack(side="top")
@@ -126,6 +190,7 @@ class DAFD_GUI:
 		tol_entry.pack(side="left")
 		tol_entry.configure(background="white")
 		self.entries_dict["tolerance"] = tol_entry
+
 
 
 		# Pack the results together
