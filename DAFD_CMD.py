@@ -79,6 +79,27 @@ if stage == 2:
 	result_str += str(fwd_results["water_rate"]) + "|"
 	result_str += str(fwd_results["inferred_droplet_size"]) + "|"
 	print(result_str)
+	if flow_stability or versatility:
+		results = features.copy()
+		results.update(fwd_results)
+		if fwd_results["regime"] == 1:
+			reg_str = "Dripping"
+		else:
+			reg_str = "Jetting"
+		MetHelper = MetricHelper(results, di=di)
+		MetHelper.run_all_flow_stability()
+		MetHelper.run_all_versatility()
+		results.update(MetHelper.versatility_results)
+		results.update({"flow_stability":MetHelper.point_flow_stability})
+		report_info = {
+			"regime": reg_str,
+			"results_df": pd.DataFrame([results]),
+			"sort_by": "flow_stability"
+		}
+		report_info["feature_denormalized"] = MetHelper.features_denormalized
+		MetHelper.generate_report(report_info)
+
+
 
 else:
 	if flow_stability or versatility:
@@ -95,10 +116,10 @@ else:
 		results_df = pd.DataFrame(results)
 		# hard code to default sort by flow_stability for both
 		if sort_by is None:
-			if versatility:
-				sort_by = "overall_versatility"
-			else:
+			if flow_stability:
 				sort_by = "flow_stability"
+			else:
+				sort_by = "versatility"
 
 		if "versatility" in sort_by:
 			reg_str = ""
@@ -125,7 +146,6 @@ else:
 		results_df.to_csv("placeholder.csv")
 		rev_results = results_df.to_dict(orient="records")[0]
 		fwd_results = di.runForward(rev_results)
-		# TODO: PICK THE HIGHEST FLOW STABILITY AND INTEGRATE IT IN WITH THE REST OF THE TIMELINE
 	else:
 		rev_results = di.runInterp(desired_vals, constraints)
 		fwd_results = di.runForward(rev_results)
@@ -159,14 +179,3 @@ if tolerance_test:
 	TH.run_all()
 	TH.plot_all()
 	TH.generate_report()
-
-flow_stability_test = True
-if flow_stability_test:
-	from DAFD.metrics_study import metric_utils
-	if stage == 1: # Performance prediction first
-		# Get the base device design features
-		MetricH = MetricHelper(rev_results)
-		MetricH.run_all_flow_stability() # run flow stability study on the chip
-		MetricH.plot_all() #TODO: MAKE ALL PLOTS NEEDED FOR THE REPORT
-		print("DONE")
-		MetricH.generate_report(filepath="PLACEHOLDER_FSstudy.csv") #TODO: FIGURE OUT WHAT AN OUTPUT REPORT WOULD LOOK LIKE

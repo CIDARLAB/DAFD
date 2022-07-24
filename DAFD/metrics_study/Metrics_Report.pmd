@@ -77,13 +77,6 @@ md(top + table + bottom)
 ```
 
 ### Droplet Generator Designs:
-Using **<%len(run_info["results_df"])%>** candidate designs, the versatility and flow stability metrics of each candidate generator
-was calculated. Output designs were ranked according to **<%run_info["sort_by"]%>. Below, you can see the
-performance ranges of the top-ranked devices regime (versatility) as well as how close the device
-is to a regime boundary (flow stability). More info on this methodology can be found here
-(Note: this link currently not active, publication is in review).
-
-
 ```python echo=False
 features = run_info["feature_denormalized"]
 microns = ["orifice_size", "depth", "outlet_width", "orifice_length", "water_inlet", "oil_inlet"]
@@ -113,12 +106,16 @@ md(table)
 ```python echo=False
 output_keys = ["generation_rate", "droplet_size", "inferred_droplet_size", "regime", "point_source"]
 outputs = run_info["results_df"].to_dict(orient="records")[0].copy()
+if "point_source" not in outputs.keys():
+    output_keys = output_keys[:-1]
 outputs = {key: outputs[key] for key in output_keys}
 
 outputs["Generation rate (Hz)"] = float(outputs.pop("generation_rate"))
 outputs["Droplet size (\u03BCm)"] = float(outputs.pop("droplet_size"))
 outputs["Inferred droplet size (\u03BCm)"] = float(outputs.pop("inferred_droplet_size"))
-outputs["Point Source"] = outputs.pop("point_source")
+
+if "point_source" in output_keys:
+    outputs["Point Source"] = outputs.pop("point_source")
 
 if outputs["regime"] == 1:
     outputs["Regime"] = "Dripping"
@@ -135,7 +132,7 @@ md(table)
 
 ### Design Quality Metrics:
 Using **<%len(run_info["results_df"])%>** candidate designs, the versatility and flow stability metrics of each candidate generator was calculated.
-Output designs were ranked according to <Sorting metric>. Below, you can see the performance ranges of the top-ranked
+Output designs were ranked according to **<%print(str.capitalize(run_info["sort_by"]).replace("_", " "))%>**. Below, you can see the performance ranges of the top-ranked
 devices regime (versatility) as well as how close the device is to a regime boundary (flow stability). More info on this
 methodology can be found here (Note: this link currently not active, publication is in review).
 
@@ -161,7 +158,10 @@ metrics = {key:np.round(metrics[key],2) for key in metric_keys}
 
 keys = list(metrics.keys())
 for key in keys:
-    metrics[str.capitalize(key).replace("_", " ")] = metrics.pop(key)
+    if key == "flow_stability":
+        metrics[str.capitalize(key).replace("_", " ") + " score"] = metrics.pop(key)
+    else:
+        metrics[str.capitalize(key).replace("_", " ")] = metrics.pop(key)
 
 
 
@@ -169,7 +169,7 @@ headers, vals = make_table_rows(metrics)
 var_types = f"""
     <tr>
         <th colspan="3">{verse_group}:</th>
-        <th colspan="2">Flow Parameters:</th>
+        <th colspan="2">Flow stability:</th>
     </tr>
 """
 table = "<table style=\"width:100%;margin-left:auto;margin-right:auto;\"> \n"
