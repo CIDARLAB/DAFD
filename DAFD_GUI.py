@@ -338,6 +338,27 @@ class DAFD_GUI:
 		results = self.di.runForward(features)
 		self.results_label["text"] = "\n".join([x + " : " + str(results[x]) for x in results])
 
+		if bool(self.entries_dict["metrics_test"].getvar(name="PY_VAR0")):
+			metric_results = features.copy()
+			metric_results.update(results)
+			if metric_results["regime"] == 1:
+				reg_str = "Dripping"
+			else:
+				reg_str = "Jetting"
+			MetHelper = MetricHelper(metric_results, di=self.di)
+			MetHelper.run_all_flow_stability()
+			MetHelper.run_all_versatility()
+			metric_results.update(MetHelper.versatility_results)
+			metric_results.update({"flow_stability": MetHelper.point_flow_stability})
+			report_info = {
+				"regime": reg_str,
+				"results_df": pd.DataFrame([metric_results]),
+				"sort_by": "flow_stability"
+			}
+			report_info["feature_denormalized"] = MetHelper.features_denormalized
+			MetHelper.generate_report(report_info)
+
+
 		# Run Tolerance Test if Specified
 		if bool(self.entries_dict["tolerance_test"].getvar(name="PY_VAR0")):
 			from DAFD.tolerance_study.TolHelper import TolHelper
