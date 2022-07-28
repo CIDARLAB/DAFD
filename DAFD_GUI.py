@@ -304,12 +304,16 @@ class DAFD_GUI:
 			MetHelper = MetricHelper(results_df.to_dict(orient="records")[0], di=self.di)
 			MetHelper.run_all_flow_stability()
 			report_info["feature_denormalized"] = MetHelper.features_denormalized
-			MetHelper.generate_report(report_info)
-			results_df.to_csv("placeholder.csv")
+
+			import datetime
 			rev_results = results_df.to_dict(orient="records")[0]
-
-
-
+			date = datetime.datetime.today().isoformat()[:16]
+			size = int(rev_results["droplet_size"])
+			rate = int(rev_results["generation_rate"])
+			filepath = f"{date}_{size}um_{rate}Hz.csv"
+			filepath = filepath.replace(":", "_")
+			results_df.to_csv(filepath)
+			MetHelper.generate_report(report_info)
 
 		else:
 			results = self.di.runInterp(desired_vals, constraints)

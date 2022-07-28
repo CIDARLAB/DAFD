@@ -141,17 +141,24 @@ else:
 		MetHelper = MetricHelper(results_df.to_dict(orient="records")[0], di=di)
 		MetHelper.run_all_flow_stability()
 		report_info["feature_denormalized"] = MetHelper.features_denormalized
-		MetHelper.generate_report(report_info)
-		results_df.to_csv("placeholder.csv")
+
 		rev_results = results_df.to_dict(orient="records")[0]
 		fwd_results = di.runForward(rev_results)
+
+		import datetime
+		date = datetime.datetime.today().isoformat()[:16]
+		size = int(fwd_results["droplet_size"])
+		rate = int(rev_results["generation_rate"])
+		filepath = f"{date}_{size}um_{rate}Hz.csv"
+		filepath = filepath.replace(":", "_")
+		results_df.to_csv(filepath)
+		results_df.to_csv(filepath)
+
+		MetHelper.generate_report(report_info)
+
 	else:
 		rev_results = di.runInterp(desired_vals, constraints)
 		fwd_results = di.runForward(rev_results)
-
-	#print(rev_results)
-	#print(fwd_results)
-
 
 	result_str = "BEGIN:"
 	for x in di.MH.get_instance().input_headers:

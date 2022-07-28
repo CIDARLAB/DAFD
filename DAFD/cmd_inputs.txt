@@ -1,11 +1,8 @@
 FLOW_STABILITY
 VERSATILITY
-FORWARD
-orifice_size=75
-aspect_ratio=4
-normalized_orifice_length=3
-normalized_water_inlet=2
-normalized_oil_inlet=2
-expansion_ratio=4
-capillary_number=.15
-flow_rate_ratio=10
+SORT_BY=flow_stability
+DESIRED_VALUES
+droplet_size=100
+generation_rate=150
+CONSTRAINTS
+regime=1:1
