@@ -110,8 +110,8 @@ class DAFD_GUI:
 		metrics_label.pack(side="left")
 		metrics_label["text"] = "Perform Metrics Study? "
 		metrics_label.configure(background="white")
-		check_var = tkinter.IntVar(value=0)
-		metrics_entry = tkinter.Checkbutton(metrics_opt_frame, variable=check_var)
+		check_var_met = tkinter.IntVar(value=0)
+		metrics_entry = tkinter.Checkbutton(metrics_opt_frame, variable=check_var_met)
 		metrics_entry.pack(side="left")
 		metrics_entry.configure(background="white")
 		self.entries_dict["metrics_test"] = metrics_entry
@@ -262,7 +262,6 @@ class DAFD_GUI:
 					desired_vals[param_name] = wanted_val
 
 		# Return and display the results
-
 		if bool(self.entries_dict["metrics_test"].getvar(name="PY_VAR0")):
 			sort_by = self.entries_dict["sort_by"].get()
 			sort_by = str.lower(sort_by).replace(" ", "_")

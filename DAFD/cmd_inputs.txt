@@ -1,7 +1,6 @@
 FLOW_STABILITY
 VERSATILITY
-SORT_BY=flow_stability
-DESIRED_VALUES
+DESIRED_VALS
 droplet_size=100
 generation_rate=150
 CONSTRAINTS

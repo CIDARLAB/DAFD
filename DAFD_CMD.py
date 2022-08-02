@@ -120,9 +120,8 @@ else:
 				sort_by = "flow_stability"
 			else:
 				sort_by = "versatility"
-
+		reg_str = ""
 		if "versatility" in sort_by:
-			reg_str = ""
 			try:
 				if constraints["regime"] == 1:
 					reg_str = "dripping"
