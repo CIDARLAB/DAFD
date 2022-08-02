@@ -23,7 +23,7 @@ class DAFD_GUI:
 
 		# DAFD Logo
 		img = Image.open(self.MH.resource_path("DAFD_logo.png"))
-		img = ImageTk.PhotoImage(img.resize((int(0.1*img.size[0]), int(0.1*img.size[1])), Image.ANTIALIAS))
+		img = ImageTk.PhotoImage(img.resize((int(0.05*img.size[0]), int(0.05*img.size[1])), Image.ANTIALIAS))
 		panel = tkinter.Label(self.root, image=img)
 		panel.pack(side="top", fill="both")
 		panel.configure(background="white")
