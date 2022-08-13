@@ -2,6 +2,7 @@
 from dafd.core_logic.ForwardModel import ForwardModel
 from dafd.core_logic.InterModel import InterModel
 from dafd.helper_scripts.ModelHelper import ModelHelper
+from dafd.tolerance_study.TolHelper import TolHelper
 
 class DAFD_Interface:
 	"""A class that provides an interface for DAFD"""
@@ -17,9 +18,18 @@ class DAFD_Interface:
 		self.input_headers = self.MH.input_headers
 		self.output_headers = self.MH.output_headers
 
-	def runInterp(self, desired_vals, constraints):
+	def runInterp(self, desired_vals, constraints, tolerance_test=False, tolerance=0.05):
 		""" Run the design automation tool"""
 		results = self.it.interpolate(desired_vals,constraints)
+  
+		if tolerance_test:
+			tol_features = results.copy()
+			del tol_features["point_source"]
+			TH = TolHelper(tol_features, di=self, tolerance=tolerance)
+			TH.run_all()
+			TH.plot_all()
+			TH.generate_report()
+
 		return results
 
 	def runForward(self, features):
