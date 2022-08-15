@@ -52,8 +52,7 @@ class MetricHelper:
         if bool(ca_range):
             self.ca_range = metric_utils.make_sweep_range(ca_range, sweep_size)
         else:
-            #self.ca_range = np.concatenate([np.arange(.05, .11, step=.01), np.linspace(.161111, 1.05, 9)]).round(4)
-            self.ca_range = np.concatenate([np.arange(.05, .5, step=.025), np.arange(.5, 1, step=.1)]).round(4) #TODO: consider changing back
+            self.ca_range = np.concatenate([np.arange(.05, .5, step=.025), np.arange(.5, 1, step=.1)]).round(4)
         if bool(q_range):
             self.q_range = metric_utils.make_sweep_range(q_range, sweep_size)
         else:
@@ -78,7 +77,6 @@ class MetricHelper:
         return out
 
     def find_boundary_points(self):
-        # THis is not the best way to do this with a single chip. Seems like a lot of unnecessary work
         params = {
             "capillary_number": self.ca_range,
             "flow_rate_ratio": self.q_range
@@ -278,7 +276,6 @@ class MetricHelper:
         plt.savefig("DAFD/metrics_study/metrics_results.png")
 
     def generate_report(self, to_report):
-        # TODO: make this a similar thing; figure out later
         to_report["Fluids"] = {"Dispersed phase": "DI Water",
                                "Continuous phase": "350 nf Mineral oil (viscosity: 57.2 mPa.s)",
                                "Surfactant": "5% V/V Span 80"}
@@ -286,4 +283,4 @@ class MetricHelper:
         self.features_normalized = to_report["results_df"].to_dict(orient="records")[0]
         self._plot_metrics()
 
-        os.system('cmd /k "pweave -f md2html DAFD/metrics_study/Metrics_Report.pmd"')
+        os.system('cmd /c "pweave -f md2html DAFD/metrics_study/Metrics_Report.pmd"')

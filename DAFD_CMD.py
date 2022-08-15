@@ -1,4 +1,7 @@
 #!/usr/bin/python3
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 import os
 from DAFD.bin.DAFD_Interface import DAFD_Interface
 from DAFD.tolerance_study.TolHelper import TolHelper
@@ -114,7 +117,6 @@ else:
 				results[i].update(MetHelper.versatility_results)
 			results[i].update(di.runForward(result))
 		results_df = pd.DataFrame(results)
-		# hard code to default sort by flow_stability for both
 		if sort_by is None:
 			if flow_stability:
 				sort_by = "flow_stability"

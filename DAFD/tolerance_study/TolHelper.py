@@ -2,7 +2,6 @@ from DAFD.bin.DAFD_Interface import DAFD_Interface
 from DAFD.tolerance_study.plot_utils import *
 import os
 import pickle
-#TODO: Include package handling in correct files
 
 class TolHelper:
     """This class contains the main functions needed for the tolerance study."""
@@ -58,13 +57,13 @@ class TolHelper:
 
         f2 = plot_half_heatmaps_grid(self.feature_heatmap_size, "Droplet Size", include_pcs=True, si=self.si_size,
                                      names=self.feature_names)
-        plt.savefig("tolerance_study/" + base + "_SizeGRID.png")
+        plt.savefig("DAFD/tolerance_study/" + base + "_SizeGRID.png")
         f3 = plot_half_heatmaps_grid(self.feature_heatmap_gen, "Generation Rate", include_pcs=True, si=self.si_gen,
                                      names=self.feature_names)
-        plt.savefig("tolerance_study/" + base + "_RateGRID.png")
+        plt.savefig("DAFD/tolerance_study/" + base + "_RateGRID.png")
 
         f1 = plot_flow_heatmaps(self.flow_heatmap_size, self.flow_heatmap_gen, self.features_denormalized)
-        plt.savefig("tolerance_study/" + base + "_flow_heatmaps.png")
+        plt.savefig("DAFD/tolerance_study/" + base + "_flow_heatmaps.png")
 
         return f1, f2, f3
 
@@ -77,8 +76,8 @@ class TolHelper:
                                 "Surfactant": "5% V/V Span 80"},
                      "Warnings": self.warnings
                      }
-        pickle.dump(to_report, open("tolerance_study/tol.p", "wb"))
-        os.system('cmd /k "pweave -f md2html DAFD/tolerance_study/Tolerance_Report.pmd"')
+        pickle.dump(to_report, open("DAFD/tolerance_study/tol.p", "wb"))
+        os.system('cmd /c "pweave -f md2html DAFD/tolerance_study/Tolerance_Report.pmd"')
 
     def sobol_analysis(self, calc_second_order=True):
         si_size, si_gen = self.principal_feature_analysis(calc_second_order=calc_second_order)

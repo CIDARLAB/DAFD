@@ -1,4 +1,7 @@
 """A graphical interface to DAFD that does not require website hosting"""
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 from DAFD.helper_scripts.ModelHelper import ModelHelper
 import tkinter
 from PIL import ImageTk, Image
@@ -7,6 +10,7 @@ import tkinter.messagebox
 from DAFD.bin.DAFD_Interface import DAFD_Interface
 import pandas as pd
 from DAFD.metrics_study.MetricHelper import MetricHelper
+
 
 class DAFD_GUI:
 	"""A class that produces a windowed interface for DAFD"""
@@ -176,8 +180,8 @@ class DAFD_GUI:
 		tol_label.pack(side="left")
 		tol_label["text"] = "Perform Tolerance Study? "
 		tol_label.configure(background="white")
-		check_var = tkinter.IntVar(value=0)
-		tol_entry = tkinter.Checkbutton(tol_frame, variable=check_var)
+		check_var_tol = tkinter.IntVar(value=0)
+		tol_entry = tkinter.Checkbutton(tol_frame, variable=check_var_tol)
 		tol_entry.pack(side="left")
 		tol_entry.configure(background="white")
 		self.entries_dict["tolerance_test"] = tol_entry
@@ -262,7 +266,7 @@ class DAFD_GUI:
 					desired_vals[param_name] = wanted_val
 
 		# Return and display the results
-		if bool(self.entries_dict["metrics_test"].getvar(name="PY_VAR0")):
+		if bool(int(self.entries_dict["metrics_test"].getvar(name="PY_VAR0"))):
 			sort_by = self.entries_dict["sort_by"].get()
 			sort_by = str.lower(sort_by).replace(" ", "_")
 			if "versatility" in sort_by and "dripping" not in sort_by and "jetting" not in sort_by:
@@ -292,7 +296,7 @@ class DAFD_GUI:
 						reg_str = "jetting"
 				except:
 					reg_str = "all"
-				sort_by = reg_str + "_" + sort_by.split("_")[0] + "_" + "score"
+				sort_by = reg_str + "_" + sort_by.split("_")[1] + "_" + "score"
 
 			results_df.sort_values(by=sort_by, ascending=False, inplace=True)
 			report_info = {
@@ -313,25 +317,32 @@ class DAFD_GUI:
 			filepath = filepath.replace(":", "_")
 			results_df.to_csv(filepath)
 			MetHelper.generate_report(report_info)
-
+			out_features = rev_results
 		else:
 			results = self.di.runInterp(desired_vals, constraints)
+			out_features = results
+
 
 		# Run Tolerance Test if Specified
-		if bool(self.entries_dict["tolerance_test"].getvar(name="PY_VAR0")):
+		if bool(int(self.entries_dict["tolerance_test"].getvar(name="PY_VAR2"))):
 			from DAFD.tolerance_study.TolHelper import TolHelper
 			tolerance = self.entries_dict["tolerance"].get()
 			if tolerance == "":
 				tolerance = 10
-			tol_features = results.copy()
+			if type(results) is list:
+				tol_features = results[0].copy()
+			else:
+				tol_features = results.copy()
+
 			del tol_features["point_source"]
 			TH = TolHelper(tol_features, di=self.di, tolerance=float(tolerance))
 			TH.run_all()
 			TH.plot_all()
 			TH.generate_report()
+			out_features = tol_features
 
-		print(self.di.runForward(results))
-		self.results_label["text"] = "\n".join([x + " : " + str(results[x]) for x in self.di.input_headers])
+		print(self.di.runForward(out_features))
+		self.results_label["text"] = "\n".join([x + " : " + str(out_features[x]) for x in self.di.input_headers])
 	
 	def runForward(self):
 		"""Predict the outputs based on the chip geometry (Normal feed-forward network) """
@@ -341,7 +352,7 @@ class DAFD_GUI:
 		results = self.di.runForward(features)
 		self.results_label["text"] = "\n".join([x + " : " + str(results[x]) for x in results])
 
-		if bool(self.entries_dict["metrics_test"].getvar(name="PY_VAR0")):
+		if bool(int(self.entries_dict["metrics_test"].getvar(name="PY_VAR0"))):
 			metric_results = features.copy()
 			metric_results.update(results)
 			if metric_results["regime"] == 1:
@@ -363,7 +374,7 @@ class DAFD_GUI:
 
 
 		# Run Tolerance Test if Specified
-		if bool(self.entries_dict["tolerance_test"].getvar(name="PY_VAR0")):
+		if bool(int(self.entries_dict["tolerance_test"].getvar(name="PY_VAR2"))):
 			from DAFD.tolerance_study.TolHelper import TolHelper
 			tolerance = self.entries_dict["tolerance"].get()
 			if tolerance == "":
