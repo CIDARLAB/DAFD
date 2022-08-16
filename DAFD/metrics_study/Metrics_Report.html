@@ -668,9 +668,7 @@ img {max-width : 100%}
 <h1>DAFD Design Report</h1>
 
 <p>Thank you for using DAFD, the first machine-learning design automation tool for droplet microfluidics. Below is a summary
-of your design, along with helpful information in troubleshooting possible fabrication errors.</p>
-<h3>Assembly Information</h3>
-<p><img alt="figure 1" src="drop_assembly.png" /></p>
+of the results of your design request, along with flow stabilty and versatility scores for each.</p>
 <h1>Droplet Generator Overview</h1>
 <h3>Fluid Properties:</h3>
 
@@ -699,13 +697,13 @@ th {
 </tr> 
 <tr> 
 <td>DI Water</td> 
-<td>350 nf Mineral oil (viscosity: 57.2 mPa.s )</td> 
+<td>350 nf Mineral oil (viscosity: 57.2 mPa.s)</td> 
 <td>5% V/V Span 80</td> 
 </tr> 
 </table> 
 </body>
 </html>
-<h3>Droplet Generator Design:</h3>
+<h3>Droplet Generator Designs:</h3>
 
 <table style="width:100%;margin-left:auto;margin-right:auto;"> 
 
@@ -737,41 +735,53 @@ th {
 
 <h3>Expected Performance:</h3>
 
-<table style="width:60%;margin-left:auto;margin-right:auto;"> 
+<table style="width:70%;margin-left:auto;margin-right:auto;"> 
 <tr> 
 <th>Generation rate (Hz)</th> 
 <th>Droplet size (μm)</th> 
 <th>Inferred droplet size (μm)</th> 
+<th>Point Source</th> 
 <th>Regime</th> 
 </tr> 
 <tr> 
 <td>149.6</td> 
 <td>100.0</td> 
 <td>97.4</td> 
+<td>Predicted</td> 
 <td>Dripping</td> 
 </tr> 
 </table> 
 
-<h1>Tolerances of Design:</h1>
-<p>Using your input tolerance of <strong>10.0%</strong>, variance-based sensitivity analysis was performed to identify the principal design features
-for droplet size and generation rate to better troubleshoot any issues from device fabrication (top left bar plots).
-Large difference between predicted and observed performance could be due to this. These principal features were then
-plotted against all other design inputs, to visualize their relative effects on performance output. More information about
-the underlying analysis can be found <a href="https://en.wikipedia.org/wiki/Variance-based_sensitivity_analysis">here</a>.</p>
-<p><em>Note: If you see multiple distinct regions (sharp jumps) within the heatmaps, then your current performance is right
-at the regime change boundary. Droplet generation could be unstable, and therefore we recommend re-running DAFD with different
-constraints</em></p>
-<h3>Droplet Size:</h3>
-<p><img alt="figure 2" src="toltest_SizeGRID.png" /></p>
-<h3>Generation Rate:</h3>
-<p><img alt="figure 3" src="toltest_RateGRID.png" /></p>
-<h1>Flow Rate Map:</h1>
-<p>To troubleshoot your device performance without fabricating a brand new device, below are heatmaps visualizing the performance
-changes caused by <strong>only</strong> changing flow rates. This provides a visual guide to understanding how changing these rates
-affect both droplet size and generation rate, rather than doing so through trial and error.
-<img alt="figure 4" src="toltest_flow_heatmaps.png" /></p>
+<h3>Design Quality Metrics:</h3>
+<p>Using <strong>3</strong> candidate designs, the versatility and flow stability metrics of each candidate generator was calculated.
+Output designs were ranked according to <strong>Dripping overall score</strong>. Below, you can see the performance ranges of the top-ranked
+devices regime (versatility) as well as how close the device is to a regime boundary (flow stability). More info on this
+methodology can be found here (Note: this link currently not active, publication is in review).</p>
+<h3>Metrics Results:</h3>
+
+<table style="width:100%;margin-left:auto;margin-right:auto;"> 
+
+    <tr>
+        <th colspan="3">Versatility (in dripping regime):</th>
+        <th colspan="2">Flow stability:</th>
+    </tr>
+<tr> 
+<th>Dripping overall score</th> 
+<th>Dripping size score</th> 
+<th>Dripping rate score</th> 
+<th>Flow stability score</th> 
+</tr> 
+<tr> 
+<td>24796.73</td> 
+<td>126.9</td> 
+<td>277.43</td> 
+<td>0.71</td> 
+</tr> 
+</table> 
+
+<p><img alt="figure 1" src="metrics_results.png" /></p>
 <h3>Questions? Contact Us:</h3>
-<p>Corresponding Authors: Ali Lashkaripour (<a href="lashkari@bu.edu">lashkari@bu.edu</a>) &amp; Prof. Douglas Densmore (<a href="dougd@bu.edu">dougd@bu.edu</a>)</p>
+<p>Corresponding Authors: David McIntyre (<a href="dpmc@bu.edu">dpmc@bu.edu</a>) &amp; Prof. Douglas Densmore (<a href="dougd@bu.edu">dougd@bu.edu</a>)</p>
 <p><html>
 <div id="content">
     <img src="../all_logos.png" class="ribbon"/>
@@ -779,7 +789,7 @@ affect both droplet size and generation rate, rather than doing so through trial
 </html></p>
     <HR/>
     <div class="footer">
-      <p>Published from <a href="DAFD/tolerance_study/Tolerance_Report.pmd">DAFD/tolerance_study/Tolerance_Report.pmd</a>
+      <p>Published from <a href="DAFD/metrics_study/Metrics_Report.pmd">DAFD/metrics_study/Metrics_Report.pmd</a>
     using <a href="http://mpastell.com/pweave">Pweave</a> 0.30.3
     on 16-08-2022.<p></div>
 

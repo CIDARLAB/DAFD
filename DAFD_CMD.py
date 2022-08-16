@@ -34,6 +34,10 @@ with open(os.path.dirname(os.path.abspath(__file__)) + "/" + "DAFD/cmd_inputs.tx
 			continue
 		elif line == "TOLERANCE":
 			tolerance_test=True
+			try:
+				tolerance = float(line.split("=")[1])
+			except:
+				tolerance = 10
 			continue
 		elif line == "FLOW_STABILITY":
 			flow_stability=True
@@ -43,9 +47,6 @@ with open(os.path.dirname(os.path.abspath(__file__)) + "/" + "DAFD/cmd_inputs.tx
 			continue
 		elif line == "SORT_BY":
 			sort_by = line.split("=")[1]
-
-		if tolerance_test:
-			tolerance = float(line.split("=")[1])
 			continue
 
 		if stage == 0:
@@ -68,11 +69,27 @@ with open(os.path.dirname(os.path.abspath(__file__)) + "/" + "DAFD/cmd_inputs.tx
 			param_val = float(line.split("=")[1])
 			features[param_name] = param_val
 
+if flow_stability or versatility:
+	if sort_by is None:
+		if flow_stability:
+			sort_by = "flow_stability"
+		else:
+			sort_by = "overall_versatility"
+	reg_str = ""
+	if "versatility" in sort_by:
+		try:
+			if constraints["regime"] == 1:
+				reg_str = "dripping"
+			else:
+				reg_str = "jetting"
+		except:
+			reg_str = "all"
+		sort_by = reg_str + "_" + sort_by.split("_")[0] + "_" + "score"
+
 
 
 if stage == 2:
 	fwd_results = di.runForward(features)
-
 	result_str = "BEGIN:"
 
 	for x in di.MH.get_instance().output_headers:
@@ -97,41 +114,22 @@ if stage == 2:
 		report_info = {
 			"regime": reg_str,
 			"results_df": pd.DataFrame([results]),
-			"sort_by": "flow_stability"
+			"sort_by": sort_by
 		}
 		report_info["feature_denormalized"] = MetHelper.features_denormalized
 		MetHelper.generate_report(report_info)
-
-
 
 else:
 	if flow_stability or versatility:
 		results = di.runInterpQM(desired_vals, constraints.copy())
 		for i, result in enumerate(results):
 			MetHelper = MetricHelper(result, di=di)
-			if flow_stability:
-				MetHelper.run_all_flow_stability()
-				results[i]["flow_stability"] = MetHelper.point_flow_stability
-			if versatility:
-				MetHelper.run_all_versatility()
-				results[i].update(MetHelper.versatility_results)
+			MetHelper.run_all_flow_stability()
+			results[i]["flow_stability"] = MetHelper.point_flow_stability
+			MetHelper.run_all_versatility()
+			results[i].update(MetHelper.versatility_results)
 			results[i].update(di.runForward(result))
 		results_df = pd.DataFrame(results)
-		if sort_by is None:
-			if flow_stability:
-				sort_by = "flow_stability"
-			else:
-				sort_by = "versatility"
-		reg_str = ""
-		if "versatility" in sort_by:
-			try:
-				if constraints["regime"] == 1:
-					reg_str = "dripping"
-				else:
-					reg_str = "jetting"
-			except:
-				reg_str = "all"
-			sort_by = reg_str + "_" + sort_by.split("_")[0] + "_" + "score"
 
 		results_df.sort_values(by=sort_by, ascending=False, inplace=True)
 		report_info = {
@@ -141,6 +139,7 @@ else:
 		}
 		MetHelper = MetricHelper(results_df.to_dict(orient="records")[0], di=di)
 		MetHelper.run_all_flow_stability()
+		MetHelper.run_all_versatility()
 		report_info["feature_denormalized"] = MetHelper.features_denormalized
 
 		rev_results = results_df.to_dict(orient="records")[0]

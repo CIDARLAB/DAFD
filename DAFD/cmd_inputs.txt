@@ -1,6 +1,8 @@
+TOLERANCE
+tolerance=10
+VERSATILITY
+CONSTRAINTS
+regime=1:1
 DESIRED_VALS
 droplet_size=100
 generation_rate=150
-CONSTRAINTS
-regime=1:1
-TOLERANCE
