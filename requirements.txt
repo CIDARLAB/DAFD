@@ -37,7 +37,7 @@ pandas==0.23.4
 pandocfilters==1.4.2
 parso==0.7.0
 pickleshare==0.7.5
-Pillow==6.2.1
+Pillow==9.3.0
 prompt-toolkit==3.0.5
 protobuf==3.6.1
 Pweave==0.30.3
